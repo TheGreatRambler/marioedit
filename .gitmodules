@@ -1,0 +1,21 @@
+[submodule "third_party/zxing"]
+	path = third_party/zxing
+	url = https://github.com/nu-book/zxing-cpp
+[submodule "third_party/skia"]
+	path = third_party/skia
+	url = https://github.com/google/skia
+[submodule "third_party/googletest"]
+	path = third_party/googletest
+	url = https://github.com/google/googletest
+[submodule "third_party/CLI11"]
+	path = third_party/CLI11
+	url = https://github.com/CLIUtils/CLI11
+[submodule "third_party/fmt"]
+	path = third_party/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "third_party/SDL"]
+	path = third_party/SDL
+	url = https://github.com/libsdl-org/SDL
+[submodule "third_party/wasmtime"]
+	path = third_party/wasmtime
+	url = https://github.com/bytecodealliance/wasmtime
