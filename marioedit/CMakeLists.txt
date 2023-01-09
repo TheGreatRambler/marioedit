@@ -7,6 +7,7 @@ add_compile_options(-Wno-sign-compare)
 add_compile_options(-Wno-deprecated-declarations)
 add_compile_options(-Wno-unused-parameter)
 add_compile_options(-Wno-extern-initializer)
+add_compile_options(-Wno-deprecated-enum-enum-conversion)
 
 if(CMAKE_BUILD_TYPE EQUAL "DEBUG")
 	add_link_options(-g -O0)
@@ -58,6 +59,33 @@ else()
 endif()
 execute_process(COMMAND ninja WORKING_DIRECTORY ${SKIA_BUILD_DIR})
 
+# fmt for some formatting
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../third_party/fmt ${CMAKE_CURRENT_BINARY_DIR}/third_party/fmt)
+
+# Zlib for decompressing replays
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../third_party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib)
+# Replace .res.res files with .res, windows thing
+execute_process(
+	COMMAND ${CMAKE_COMMAND} -E copy
+		${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib/CMakeFiles/zlib.dir/win32/zlib1.res.res
+		${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib/CMakeFiles/zlib.dir/win32/zlib1.res)
+execute_process(
+	COMMAND ${CMAKE_COMMAND} -E copy
+		${CMAKE_CURRENT_SOURCE_DIR}/../third_party/zlib/zlib.h
+		${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib/zlib.h)
+execute_process(
+	COMMAND ${CMAKE_COMMAND} -E copy
+		${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib/zlib.dll
+		${CMAKE_CURRENT_BINARY_DIR}/zlib.dll)
+
+# Libcurl for downloading Miis for visualization
+set(CURL_LIB ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/curl/lib/libcurl.lib)
+set(CURL_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/curl/include)
+execute_process(
+	COMMAND ${CMAKE_COMMAND} -E copy
+		${CMAKE_CURRENT_SOURCE_DIR}/../third_party/curl/lib/libcurl.dll
+		${CMAKE_CURRENT_BINARY_DIR}/libcurl.dll)
+
 # wasmtime for an alternative better Webassembly runtime
 set(WASMTIME_INCLUDES 
 	${CMAKE_CURRENT_SOURCE_DIR}/../third_party/wasmtime/crates/c-api/include
@@ -78,18 +106,22 @@ endif()
 
 set(marioedit_SOURCES
 	src/viewer.cpp
+	src/level.cpp
+	src/SMM2CourseDecryptor/aes.cpp
+	src/SMM2CourseDecryptor/decrypt.cpp
+	src/MM2/level.cpp
+	src/kaitai/kaitaistream.cpp
 )
 
 add_library(marioedit STATIC ${marioedit_SOURCES})
 set_target_properties(marioedit PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_options(marioedit PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces)
 
-include_directories(${WASMTIME_INCLUDES})
-include_directories(ZXing ${SKIA_DIR} ${SKIA_DIR}/include)
+include_directories(ZXing ${WASMTIME_INCLUDES} ${SKIA_DIR} ${SKIA_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/zlib ${SDL_INCLUDES} fmt ${CURL_INCLUDE})
 
 if(WIN32)
-	target_link_libraries(marioedit PUBLIC ZXing skia wasmtime SDL2main SDL2-static gdi32 opengl32)
+	target_link_libraries(marioedit PUBLIC ZXing skia fmt zlibstatic ${CURL_LIB} wasmtime SDL3-static gdi32 opengl32)
 elseif(ANDROID)
-	target_link_libraries(marioedit PUBLIC ZXing skia wasmtime GLESv3 EGL)
+	target_link_libraries(marioedit PUBLIC ZXing skia fmt zlibstatic ${CURL_LIB} wasmtime GLESv3 EGL)
 endif()
-target_include_directories(marioedit PUBLIC include ${SDL_INCLUDES} ${SKIA_DIR} ${SKIA_DIR}/include)
+target_include_directories(marioedit PUBLIC include)

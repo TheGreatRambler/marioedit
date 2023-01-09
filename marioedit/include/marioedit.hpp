@@ -7,5 +7,7 @@
 #include <vector>
 
 namespace MarioEdit {
-	namespace Viewer { }
+	namespace Viewer {
+		int Start();
+	}
 }

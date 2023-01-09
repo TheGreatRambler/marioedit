@@ -19,3 +19,6 @@
 [submodule "third_party/wasmtime"]
 	path = third_party/wasmtime
 	url = https://github.com/bytecodealliance/wasmtime
+[submodule "third_party/zlib"]
+	path = third_party/zlib
+	url = https://github.com/madler/zlib
