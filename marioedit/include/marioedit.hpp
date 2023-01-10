@@ -1,5 +1,7 @@
 #pragma once
 
+#include <marioedit/drawer.hpp>
+
 #include <cmath>
 #include <cstdint>
 #include <string>
@@ -9,5 +11,6 @@
 namespace MarioEdit {
 	namespace Viewer {
 		int Start();
+		void DrawMap(Level::Drawer* drawer);
 	}
 }

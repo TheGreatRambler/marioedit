@@ -106,7 +106,9 @@ endif()
 
 set(marioedit_SOURCES
 	src/viewer.cpp
-	src/level.cpp
+	src/parser.cpp
+	src/drawer.cpp
+	src/ui.cpp
 	src/SMM2CourseDecryptor/aes.cpp
 	src/SMM2CourseDecryptor/decrypt.cpp
 	src/MM2/level.cpp
@@ -117,11 +119,11 @@ add_library(marioedit STATIC ${marioedit_SOURCES})
 set_target_properties(marioedit PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_options(marioedit PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-missing-braces)
 
-include_directories(ZXing ${WASMTIME_INCLUDES} ${SKIA_DIR} ${SKIA_DIR}/include ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/zlib ${SDL_INCLUDES} fmt ${CURL_INCLUDE})
+include_directories(ZXing ${WASMTIME_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/zlib ${SDL_INCLUDES} ${CURL_INCLUDE})
 
 if(WIN32)
 	target_link_libraries(marioedit PUBLIC ZXing skia fmt zlibstatic ${CURL_LIB} wasmtime SDL3-static gdi32 opengl32)
 elseif(ANDROID)
 	target_link_libraries(marioedit PUBLIC ZXing skia fmt zlibstatic ${CURL_LIB} wasmtime GLESv3 EGL)
 endif()
-target_include_directories(marioedit PUBLIC include)
+target_include_directories(marioedit PUBLIC include ${SKIA_DIR} ${SKIA_DIR}/include fmt)
