@@ -64,6 +64,7 @@ namespace MarioEdit {
 			void DrawSnake(unsigned char EX, int X, int Y, int SW, int SH);
 			void DrawMoveBlock(unsigned char ID, unsigned char EX, int X, int Y);
 			void DrawItem(const std::unordered_set<short>& K, bool L);
+			void RenderItem(int objID, int i, bool L);
 			void ReGrdCode();
 			void DrawGrd();
 			int GetGrdType(const std::string& A);

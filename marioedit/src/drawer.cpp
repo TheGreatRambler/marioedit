@@ -895,1861 +895,1780 @@ namespace MarioEdit {
 		}
 
 		void Drawer::DrawItem(const std::unordered_set<short>& K, bool L) {
+			for(int i = 0; i < level.MapHdr.ObjCount; i++) {
+				int objID = level.MapObj[i].ID;
+				if(K.count(objID)) {
+					RenderItem(objID, i, L);
+				}
+			}
+		}
+
+		void Drawer::RenderItem(int objID, int i, bool L) {
 			int tileY     = 0;
 			int LX        = 0;
 			int LY        = 0;
 			int KY        = 0;
 			uint32_t path = 0;
 
-			for(int i = 0; i < level.MapHdr.ObjCount; i++) {
-				int objID = level.MapObj[i].ID;
-				if(K.count(objID)) {
-					int objW    = level.MapObj[i].W;
-					int objH    = level.MapObj[i].H;
-					int objFlag = level.MapObj[i].Flag;
-					int objLid  = level.MapObj[i].LID;
-					int objCid  = level.MapObj[i].CID;
-					int objX    = level.MapObj[i].X;
-					int objY    = level.MapObj[i].Y;
+			int objW    = level.MapObj[i].W;
+			int objH    = level.MapObj[i].H;
+			int objFlag = level.MapObj[i].Flag;
+			int objLid  = level.MapObj[i].LID;
+			int objCid  = level.MapObj[i].CID;
+			int objX    = level.MapObj[i].X;
+			int objY    = level.MapObj[i].Y;
 
-					if(objID == 105) {
-						if((objFlag / 0x400) % 2 == 1) {
-							KY = 0;
+			if(objID == 105) {
+				if((objFlag / 0x400) % 2 == 1) {
+					KY = 0;
+				} else {
+					KY = -3 * Zm;
+				}
+				level.ObjLinkType[objLid + 1] = 105;
+
+				if((objFlag / 0x80) % 2 == 1) {
+					path = level.LH.GameStyle | Data::OBJ_105A;
+				} else {
+					path = level.LH.GameStyle | Data::OBJ_105;
+				}
+
+				DrawImage(path, (float)(-1.5 + objX / 160.0) * Zm,
+					H * Zm - (float)(0.5 + objY / 160.0) * Zm + KY, Zm * 3, Zm * 5);
+
+				if(objCid != -1) {
+					path = Data::GetIndex(level.LH.GameStyle, objCid,
+						(level.MapObj[i].CFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE, Data::CID);
+					DrawImage(level.LH.GameStyle | path, LX, LY + KY, Zm, Zm);
+				}
+			} else {
+				switch(level.ObjLinkType[objLid + 1]) {
+				case 9: //管道L
+					KY = ((std::min(objW, objH) - 1) / 2) * Zm;
+					break;
+				case 105: //夹子L
+					KY = std::round(-Zm / 4.0);
+					break;
+				case 59: //轨道
+					KY = ((std::min(objW, objH) - 1) / 2) * Zm;
+					break;
+				case 31:
+					KY = 0; // 3 * Zm
+					break;
+				case 106: //树
+					KY = 0;
+					break;
+				case 0:
+					KY = 0;
+					break;
+				}
+
+				if((objLid + 1 == 0 && !L) || (objLid + 1 > 0 && L) || objID == 9) {
+					switch(objID) {
+					case 14: {
+						//蘑菇平台
+						if((objFlag / 0x40000) % 2 == 1) {
+							tileY = 3;
+						} else if((objFlag / 0x80000) % 2 == 1) {
+							tileY = 4;
 						} else {
-							KY = -3 * Zm;
+							tileY = 2;
 						}
-						level.ObjLinkType[objLid + 1] = 105;
+
+						for(int j = 0; j < objW; j++) {
+							int tileX = 4;
+							if(j == 0) {
+								tileX = 3;
+							} else if(j == objW - 1) {
+								tileX = 5;
+							}
+							DrawTile(tileX, tileY, 1, 1, (float)((j - 0.5 + objX / 160.0) * Zm),
+								H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+						}
+
+						if(objW % 2 == 0) {
+							for(int j = 1; j < objH; j++) {
+								tileY = 2;
+								if(j == 1) {
+									tileY = 1;
+								}
+
+								DrawTile(6, tileY, 1, 1,
+									(float)((objX / 160.0 + objW / 2.0 - 1.5) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0 - j) * Zm), Zm, Zm);
+								DrawTile(7, tileY, 1, 1,
+									(float)((objX / 160.0 + objW / 2.0 - 0.5) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0 - j) * Zm), Zm, Zm);
+							}
+						} else {
+							for(int j = 1; j < objH; j++) {
+								tileY = 4;
+								if(j == 1) {
+									tileY = 3;
+								}
+
+								DrawTile(6, tileY, 1, 1,
+									(float)((0.5 + objX / 160.0 + (objW - 3) / 2.0) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0 - j) * Zm), Zm, Zm);
+							}
+						}
+						break;
+					}
+					case 16: {
+						//半碰撞地形
+						if((objFlag / 0x40000) % 2 == 1) {
+							tileY = 10;
+						} else if((objFlag / 0x80000) % 2 == 1) {
+							tileY = 13;
+						} else {
+							tileY = 7;
+						}
+
+						for(int j = 0; j < objW; j++) {
+							int offsetX = 1;
+							if(j == 0) {
+								offsetX = 0;
+							} else if(j == (objW - 1)) {
+								offsetX = 2;
+							}
+
+							for(int y = 0; y < objH; y++) {
+								int offsetY = 5;
+
+								if(y == 0) {
+									offsetY = 3;
+								} else if(y == 1) {
+									offsetY = 4;
+								} else if(y == (objH - 1)) {
+									offsetY = 6;
+								}
+
+								DrawTile(tileY + offsetX, offsetY, 1, 1,
+									(float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((objH - 0.5 - y + objY / 160.0) * Zm), Zm, Zm);
+							}
+						}
+						break;
+					}
+					case 71: {
+						// 3D半碰撞地形
+						int TL;
+						int TM;
+						int TR;
+
+						for(tileY = 0; tileY < objH; tileY++) {
+							if(tileY == 0) {
+								TL = level.LH.GameStyle | Data::OBJ_71;
+								TM = level.LH.GameStyle | Data::OBJ_71A;
+								TR = level.LH.GameStyle | Data::OBJ_71B;
+							} else if(tileY == objH - 1) {
+								TL = level.LH.GameStyle | Data::OBJ_71F;
+								TM = level.LH.GameStyle | Data::OBJ_71G;
+								TR = level.LH.GameStyle | Data::OBJ_71H;
+							} else {
+								TL = level.LH.GameStyle | Data::OBJ_71C;
+								TM = level.LH.GameStyle | Data::OBJ_71D;
+								TR = level.LH.GameStyle | Data::OBJ_71E;
+							}
+
+							for(int j = 0; j < objW; j++) {
+								path = TM;
+								if(j == 0) {
+									path = TL;
+								} else if(j == objW - 1) {
+									path = TR;
+								}
+
+								DrawImage(path, (float)((j - 0.5 + objX / 160.0) * Zm),
+									(H + tileY) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm),
+									Zm, Zm);
+							}
+						}
+						break;
+					}
+					case 17: {
+						for(int j = 0; j < objW; j++) {
+							if(j == 0) {
+								DrawTile(0, 2, 1, 2, (float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm, Zm * 2);
+							} else if(j == objW - 1) {
+								DrawTile(2, 2, 1, 2, (float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm, Zm * 2);
+							} else {
+								DrawTile(1, 2, 1, 2, (float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm, Zm * 2);
+							}
+						}
+						break;
+					}
+					case 113:
+					case 132: {
+						if((objFlag / 0x4) % 2 == 1) {
+							for(int j = 0; j < objW; j++) {
+								if(j == 0) {
+									path = Data::GetIndex(level.LH.GameStyle, objID, Data::D_);
+								} else if(j == objW - 1) {
+									path = Data::GetIndex(level.LH.GameStyle, objID, Data::E_);
+								} else {
+									path = Data::GetIndex(level.LH.GameStyle, objID, Data::C_);
+								}
+
+								DrawImage(path, (float)((j - objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
+							}
+						} else {
+							for(int j = 0; j < objW; j++) {
+								if(j == 0) {
+									path = Data::GetIndex(level.LH.GameStyle, objID, Data::A_);
+								} else if(j == objW - 1) {
+									path = Data::GetIndex(level.LH.GameStyle, objID, Data::B_);
+								} else {
+									path = Data::GetIndex(level.LH.GameStyle, objID);
+								}
+
+								DrawImage(path, (float)((j - objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
+							}
+						}
+
+						break;
+					}
+					case 66:
+					case 67:
+					case 90: {
+						//箭头 单向板 中间旗
+						switch(objFlag) {
+						case 0x6000040:
+							path = Data::GetIndex(level.LH.GameStyle, objID);
+							break;
+						case 0x6400040:
+							path = Data::GetIndex(level.LH.GameStyle, objID, Data::A_);
+							break;
+						case 0x6800040:
+							path = Data::GetIndex(level.LH.GameStyle, objID, Data::B_);
+							break;
+						case 0x6C00040:
+							path = Data::GetIndex(level.LH.GameStyle, objID, Data::C_);
+							break;
+						case 0x7000040:
+							path = level.LH.GameStyle | Data::OBJ_66D;
+							break;
+						case 0x7400040:
+							path = level.LH.GameStyle | Data::OBJ_66E;
+							break;
+						case 0x7800040:
+							path = level.LH.GameStyle | Data::OBJ_66F;
+							break;
+						case 0x7C00040:
+							path = level.LH.GameStyle | Data::OBJ_66G;
+							break;
+						}
+
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH / 2.0 + objY / 160.0) * Zm));
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 83: //狼牙棒
+					{
+						switch(objFlag) {
+						case 0x6000040:
+							path = level.LH.GameStyle | Data::OBJ_83;
+							break;
+						case 0x6400040:
+							path = level.LH.GameStyle | Data::OBJ_83A;
+							break;
+						case 0x6800040:
+							path = level.LH.GameStyle | Data::OBJ_83B;
+							break;
+						case 0x6C00040:
+							path = level.LH.GameStyle | Data::OBJ_83C;
+							break;
+						case 0x7000040:
+							path = level.LH.GameStyle | Data::OBJ_83C;
+							break;
+						case 0x7400040:
+							path = level.LH.GameStyle | Data::OBJ_83C;
+							break;
+						case 0x7800040:
+							path = level.LH.GameStyle | Data::OBJ_83C;
+							break;
+						case 0x7C00040:
+							path = level.LH.GameStyle | Data::OBJ_83C;
+							break;
+						}
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH / 2.0 + objY / 160.0) * Zm));
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 64: {
+						for(int j = 1; j <= objH; j++) {
+							if(j == 1) {
+								DrawTile(13, 7, 1, 1, (float)(-objW / 2.0 + objX / 160.0) * Zm,
+									H * Zm - (float)((j + std::round(objY) / 160.0) * Zm), Zm, Zm);
+							} else if(j == objH) {
+								DrawTile(15, 7, 1, 1, (float)(-objW / 2.0 + objX / 160.0) * Zm,
+									H * Zm - (float)((j + std::round(objY) / 160.0) * Zm), Zm, Zm);
+							} else {
+								DrawTile(14, 7, 1, 1, (float)(-objW / 2.0 + objX / 160.0) * Zm,
+									H * Zm - (float)((j + std::round(objY) / 160.0) * Zm), Zm, Zm);
+							}
+						}
+						break;
+					}
+					case 4:
+					case 5:
+					case 6:
+					case 21:
+					case 22:
+					case 23:
+					case 29:
+					case 63:
+					case 79:
+					case 99:
+					case 100:
+					case 43:
+					case 8: {
+						int PP = 0;
+						if((objFlag / 0x4) % 2 == 1) {
+							PP = 1;
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawTile(level.TileLoc[objID][PP].X, level.TileLoc[objID][PP].Y, 1, 1,
+							(float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 108: {
+						//闪烁砖
+						if((objFlag / 0x4) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_108A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_108;
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 106: //树
+					{
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH + 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_106,
+							(float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * 4,
+							Zm * 4);
+
+						for(int j = 4; j < objH; j++) {
+							DrawImage(level.LH.GameStyle | Data::OBJ_106A,
+								(float)((-objW / 2.0 + 1.5 + objX / 160.0) * Zm),
+								(H + j) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm,
+								Zm);
+						}
+						DrawImage(level.LH.GameStyle | Data::OBJ_106B,
+							(float)((-objW / 2.0 + 1 + objX / 160.0) * Zm),
+							H * Zm - (float)((-0.5 + objY / 160.0) * Zm) + KY, Zm * 2, Zm);
+						break;
+					}
+					case 85:
+					case 119: {
+						//机动砖 轨道砖
+						if((objFlag / 0x4) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_85A;
+						} else {
+							if(objID == 85) {
+								path = level.LH.GameStyle | Data::OBJ_85;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_119;
+							}
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						DrawMoveBlock(objID, level.MapObj[i].Ex, objX, objY);
+						break;
+					}
+					case 94: {
+						//斜传送带
+						Point C1;
+						Point C2;
+						if((objFlag / 0x400000) % 2 == 0) {
+							C1 = Point(8, 0);
+							C2 = Point(4, 16);
+						} else {
+							C1 = Point(13, 24);
+							C2 = Point(10, 22);
+						}
+						if((objFlag / 0x200000) % 0x2 == 0) {
+							//左斜
+							LX = std::round((float)((-1 + objW / 2.0 + objX / 160.0) * Zm));
+							LY = std::round(
+								(H - 0.5 - objH / 2) * Zm - (float)((-0.5 + objY / 160.0) * Zm));
+
+							DrawTile(C1.X, C1.Y, 1, 1, (float)((-0.5 + objX / 160.0) * Zm),
+								(H - 1) * Zm - (float)((-0.5 + objY / 160.0) * Zm), Zm, Zm);
+
+							DrawTile(C1.X + 2, C1.Y, 1, 1,
+								(float)((objW - 1.5 + objX / 160.0) * Zm),
+								(H - 1) * Zm - (float)((objH - 1.5 + objY / 160.0) * Zm), Zm, Zm);
+
+							for(int j = 1; j <= objW - 2; j++) {
+								DrawTile(C2.X + 1, C2.Y, 1, 2,
+									(float)((j - 0.5 + objX / 160.0) * Zm),
+									(H - 1) * Zm - (float)((j - 0.5 + objY / 160.0) * Zm), Zm,
+									Zm * 2);
+							}
+
+						} else {
+							//右斜
+							LX = std::round((float)((-1 + objW / 2.0 + objX / 160.0) * Zm));
+							LY = std::round(
+								(H - 0.5 - objH / 2) * Zm - (float)((-0.5 + objY / 160.0) * Zm));
+
+							DrawTile(C1.X, C1.Y, 1, 1, (float)((-0.5 + objX / 160.0) * Zm),
+								(H - 1) * Zm - (float)((objH - 1.5 + objY / 160.0) * Zm), Zm, Zm);
+
+							DrawTile(C1.X + 2, C1.Y, 1, 1,
+								(float)((objW - 1.5 + objX / 160.0) * Zm),
+								(H - 1) * Zm - (float)((-0.5 + objY / 160.0) * Zm), Zm, Zm);
+
+							for(int j = 1; j <= objW - 2; j++) {
+								DrawTile(C2.X + 4, C2.Y, 1, 2,
+									(float)((j - 0.5 + objX / 160.0) * Zm),
+									(H - 1) * Zm - (float)((-0.5 - j + objH + objY / 160.0) * Zm),
+									Zm, Zm * 2);
+							}
+						}
+
+						if((objFlag / 0x40000) % 2 == 0) {
+							if((objFlag / 0x8) % 2 == 1) {
+								DrawImage(Data::OBJ_CMN_A1, LX, LY, Zm, Zm);
+							} else {
+								DrawImage(Data::OBJ_CMN_A0, LX, LY, Zm, Zm);
+							}
+						} else {
+							if((objFlag / 0x8) % 2 == 1) {
+								DrawImage(Data::OBJ_CMN_A3, LX, LY, Zm, Zm);
+							} else {
+								DrawImage(Data::OBJ_CMN_A2, LX, LY, Zm, Zm);
+							}
+						}
+						break;
+					}
+					case 53: {
+						//传送带
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
+						Point C1;
+						if((objFlag / 0x400000) % 2 == 0) {
+							C1 = Point(8, 0);
+						} else {
+							C1 = Point(13, 24);
+						}
+
+						for(int j = 0; j < objW; j++) {
+							if(j == 0) {
+								DrawTile(C1.X, C1.Y, 1, 1, (float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
+							} else if(j == objW - 1) {
+								DrawTile(C1.X + 2, C1.Y, 1, 1,
+									(float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
+							} else {
+								DrawTile(C1.X + 1, C1.Y, 1, 1,
+									(float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
+							}
+
+							if((objFlag) / 0x40000 % 2 == 0) {
+								if((objFlag / 0x8) % 2 == 1) {
+									DrawImage(Data::OBJ_CMN_A1,
+										LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm, Zm);
+								} else {
+									DrawImage(Data::OBJ_CMN_A0,
+										LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm, Zm);
+								}
+							} else {
+								if((objFlag / 0x8) % 2 == 1) {
+									DrawImage(Data::OBJ_CMN_A3,
+										LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm, Zm);
+								} else {
+									DrawImage(Data::OBJ_CMN_A2,
+										LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm, Zm);
+								}
+							}
+						}
+						break;
+					}
+					case 9: {
+						level.ObjLinkType[objLid + 1] = 9;
+						int PP                        = ((objFlag / 0x10000) % 0x10) / 4;
+						switch(objFlag % 0x80) {
+						case 0x0: { // R
+							LX = std::round((float)((objH - 1 - 1 - 0.5 + objX / 160.0) * Zm));
+							LY = std::round(H * Zm - (float)((objY / 160.0) * Zm));
+
+							for(int j = 0; j <= (objH - 2); j++) {
+								DrawTile(level.PipeLoc[PP][4].X, level.PipeLoc[PP][4].Y, 1, 2,
+									(float)((j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, 2 * Zm);
+							}
+							DrawTile(level.PipeLoc[PP][3].X, level.PipeLoc[PP][3].Y, 1, 2,
+								(float)((objH - 1.5 + objX / 160.0) * Zm),
+								H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, 2 * Zm);
+						} break;
+						case 0x20: { // L
+							LX = std::round((float)((-objH + 1 + 1 - 0.5 + objX / 160.0) * Zm));
+							LY = std::round(H * Zm - (float)((1 + objY / 160.0) * Zm));
+
+							for(int j = 0; j <= (objH - 2); j++) {
+								DrawTile(level.PipeLoc[PP][4].X, level.PipeLoc[PP][4].Y, 1, 2,
+									(float)((-j - 0.5 + objX / 160.0) * Zm),
+									H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm, 2 * Zm);
+							}
+							DrawTile(level.PipeLoc[PP][2].X, level.PipeLoc[PP][2].Y, 1, 2,
+								(float)((-objH + 0.5 + objX / 160.0) * Zm),
+								H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm, 2 * Zm);
+						} break;
+						case 0x40: { // U
+							LX = std::round((float)((+objX / 160.0) * Zm));
+							LY = (H - objH + 1 + 1) * Zm - (float)((0.5 + objY / 160.0) * Zm);
+
+							for(int j = 0; j <= (objH - 2); j++) {
+								DrawTile(level.PipeLoc[PP][5].X, level.PipeLoc[PP][5].Y, 2, 1,
+									(float)((-0.5 + objX / 160.0) * Zm),
+									(H - j) * Zm - (float)((0.5 + objY / 160.0) * Zm), 2 * Zm, Zm);
+							}
+							DrawTile(level.PipeLoc[PP][0].X, level.PipeLoc[PP][0].Y, 2, 1,
+								(float)((-0.5 + objX / 160.0) * Zm),
+								(H - objH + 1) * Zm - (float)((0.5 + objY / 160.0) * Zm), 2 * Zm,
+								Zm);
+						} break;
+						case 0x60: { // D
+							LX = std::round((float)((-1 + objX / 160.0) * Zm));
+							LY = (H + objH - 1 - 1) * Zm - (float)((0.5 + objY / 160.0) * Zm);
+
+							for(int j = 0; j <= (objH - 2); j++) {
+								DrawTile(level.PipeLoc[PP][5].X, level.PipeLoc[PP][5].Y, 2, 1,
+									(float)((-1.5 + objX / 160.0) * Zm),
+									(H + j) * Zm - (float)((0.5 + objY / 160.0) * Zm), 2 * Zm, Zm);
+							}
+							DrawTile(level.PipeLoc[PP][1].X, level.PipeLoc[PP][1].Y, 2, 1,
+								(float)((-1.5 + objX / 160.0) * Zm),
+								(H + objH - 1) * Zm - (float)((0.5 + objY / 160.0) * Zm), 2 * Zm,
+								Zm);
+						} break;
+						}
+
+						int cmnId = objFlag % 0x1000000 / 0x100000 - 1;
+						if(cmnId != -1) {
+							path = Data::GetIndex(0, Data::C0 + cmnId, Data::NONE, Data::CMN);
+						}
+
+						if(path) {
+							DrawImage(path, LX, LY, Zm, Zm);
+						}
+
+						break;
+					}
+					case 55: {
+						//门
+						if((objFlag / 0x40000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_55A;
+						} else if((objFlag / 0x80000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_55B;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_55;
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
+							Zm * objH);
+
+						int cmnId = objFlag % 0x800000 / 0x200000;
+						path      = Data::GetIndex(0, Data::C0 + cmnId, Data::NONE, Data::CMN);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							(H + 1) * Zm - (float)((objH + objY / 160.0) * Zm), Zm, Zm);
+						break;
+					}
+					case 97: {
+						//传送箱
+						if((objFlag / 0x4) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_97A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_97;
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
+							Zm * objH);
+
+						int cmnId = objFlag % 0x800000 / 0x200000;
+						path      = Data::GetIndex(0, Data::C0 + cmnId, Data::NONE, Data::CMN);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+						break;
+					}
+					case 84: {
+						for(int j = 0; j < objW; j++) {
+							if((objFlag / 0x4) % 2 == 1) {
+								DrawImage(level.LH.GameStyle | Data::OBJ_84A,
+									(float)((j - objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+							} else {
+								DrawImage(level.LH.GameStyle | Data::OBJ_84,
+									(float)((j - objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+							}
+						}
+						//&H10方向
+						DrawSnake(level.MapObj[i].Ex, objX, objY, objW, objH);
+
+						break;
+					}
+					case 68:
+					case 82: {
+						if(objID == 68) {
+							path = level.LH.GameStyle | Data::OBJ_68;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_82;
+						}
+
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round((H - 1.5) * Zm - (float)((objY / 160.0) * Zm) + KY);
+
+						DrawImageOpacity(path, 0.7, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 0:
+					case 10:
+					case 15:
+					case 19:
+					case 20:
+					case 35:
+					case 48:
+					case 56:
+					case 57:
+					case 60:
+					case 76:
+					case 92:
+					case 95:
+					case 102:
+					case 72:
+					case 50:
+					case 51:
+					case 65:
+					case 80:
+					case 114:
+					case 77:
+					case 104:
+					case 120:
+					case 121:
+					case 122:
+					case 123:
+					case 124:
+					case 125:
+					case 126:
+					case 112:
+					case 127:
+					case 128:
+					case 129:
+					case 130:
+					case 131:
+					case 96:
+					case 117:
+					case 86: {
+						path = Data::GetIndex(level.LH.GameStyle, objID,
+							(objFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE);
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 33: {
+						// 1UP
+						if(level.MapHdr.Theme == 0 && level.MapHdr.Flag == 2) {
+							path = level.LH.GameStyle | Data::OBJ_33A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_33;
+						}
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 74: {
+						//加邦
+						if((objFlag / 0x4) % 2 == 1) {
+							if(level.MapHdr.Theme == 6) {
+								path = level.LH.GameStyle | Data::OBJ_74B;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_74A;
+							}
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_74;
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 42: {
+						//飞机
+						if((objFlag / 0x4 % 2 == 1) || (objFlag / 0x40000 % 2 == 1)) {
+							path = level.LH.GameStyle | Data::OBJ_42A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_42;
+						}
+						LX = std::round(
+							(float)((-1 + (std::round(objW) / 2) / 2.0 + objX / 160.0) * Zm));
+						LY = (H + objH / 2.0 - 0.5) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm)
+							 + KY;
+
+						DrawImage(path, (float)((-1 + objX / 160.0) * Zm),
+							(H + objH / 2.0 - 0.5) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm)
+								+ KY,
+							Zm * 2, Zm * 2);
+
+						break;
+					}
+					case 34: {
+						//火花
+						if((objFlag / 0x4) % 2 == 1) {
+							if((objFlag / 0x40000) % 2 == 1) {
+								path = level.LH.GameStyle | Data::OBJ_34C;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_34A;
+							}
+						} else {
+							if((objFlag / 0x40000) % 2 == 1) {
+								path = level.LH.GameStyle | Data::OBJ_34B;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_34;
+							}
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 81:
+					case 116: {
+						// USA  锤子
+
+						if((objFlag / 0x40000) % 2 == 1) {
+							if(objID == 81) {
+								path = level.LH.GameStyle | Data::OBJ_81A;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_116A;
+							}
+						} else {
+							if(objID == 81) {
+								path = level.LH.GameStyle | Data::OBJ_81;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_116;
+							}
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 44: {
+						//大蘑菇
+
+						if((objFlag / 0x40000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_44A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_44;
+						}
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 12: {
+						//咚咚
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = (H + objH / 2.0 - 0.5) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm)
+							 + KY;
+
+						DrawImageOpacity(level.LH.GameStyle | Data::OBJ_12, 0.7,
+							(float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						if(objLid == -1) {
+							switch((objFlag) % 0x100) {
+							case 0x40:
+							case 0x42:
+							case 0x44:
+								DrawImage(Data::OBJ_CMN_E1, LX, LY, Zm, Zm);
+								break;
+							case 0x48:
+							case 0x4A:
+							case 0x4C:
+								DrawImage(Data::OBJ_CMN_E2, LX, LY, Zm, Zm);
+								break;
+							case 0x50:
+							case 0x52:
+							case 0x54:
+								DrawImage(Data::OBJ_CMN_E0, LX, LY, Zm, Zm);
+								break;
+							case 0x58:
+							case 0x5A:
+							case 0x5C:
+								DrawImage(Data::OBJ_CMN_E3, LX, LY, Zm, Zm);
+								break;
+							}
+						}
+
+						break;
+					}
+					case 41: {
+						//幽灵
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+						switch(level.LH.GameStyle) {
+						case 22323:
+							if((objFlag / 0x4) % 2 == 1) {
+								path = level.LH.GameStyle | Data::OBJ_41D;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_41;
+							}
+							break;
+						default:
+							if((objFlag / 0x4) % 2 == 1) {
+								path = level.LH.GameStyle | Data::OBJ_41A;
+							} else if((objFlag / 0x1000000) % 0x8 == 0x4) {
+								path = level.LH.GameStyle | Data::OBJ_41C;
+							} else if((objFlag / 0x100) % 2 == 1) {
+								path = level.LH.GameStyle | Data::OBJ_41B;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_41;
+							}
+							break;
+						}
+						DrawImage(path, LX, LY, Zm * objW, Zm * objH);
+
+						break;
+					}
+					case 28:
+					case 25:
+					case 18: {
+						//钢盔 刺龟 P
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+						if((objFlag / 0x4) % 2 == 1) {
+							if(objID == 28) {
+								path = level.LH.GameStyle | Data::OBJ_28A;
+							} else if(objID == 25) {
+								path = level.LH.GameStyle | Data::OBJ_25A;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_18A;
+							}
+						} else if((objFlag / 0x1000000) % 8 == 0x6) {
+							if(objID == 28) {
+								path = level.LH.GameStyle | Data::OBJ_28;
+							} else if(objID == 25) {
+								path = level.LH.GameStyle | Data::OBJ_25;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_18;
+							}
+						} else {
+							if(objID == 28) {
+								path = level.LH.GameStyle | Data::OBJ_28B;
+							} else if(objID == 25) {
+								path = level.LH.GameStyle | Data::OBJ_25B;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_18B;
+							}
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 40: {
+						//小刺龟
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = (H + objW) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
+						if((objFlag / 0x4) % 2 == 1) {
+							switch((objFlag / 0x1000000) % 8) {
+								//方向6上 4下 0左 2右
+							case 0x0: // L
+								DrawImage(level.LH.GameStyle | Data::OBJ_40B0, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							case 0x2: // R
+								DrawImage(level.LH.GameStyle | Data::OBJ_40B2, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							case 0x4: // D
+								DrawImage(level.LH.GameStyle | Data::OBJ_40B4, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							case 0x6: // U
+								DrawImage(level.LH.GameStyle | Data::OBJ_40B6, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							}
+						} else {
+							switch((objFlag / 0x1000000) % 8) {
+								//方向6上 4下 0左 2右
+							case 0x0: // L
+								DrawImage(level.LH.GameStyle | Data::OBJ_40A0, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							case 0x2: // R
+								DrawImage(level.LH.GameStyle | Data::OBJ_40A2, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							case 0x4: // D
+								DrawImage(level.LH.GameStyle | Data::OBJ_40A0, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							case 0x6: // U
+								DrawImage(level.LH.GameStyle | Data::OBJ_40A6, LX, LY, Zm * objW,
+									Zm * objH);
+								break;
+							}
+						}
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+						break;
+					}
+					case 2: {
+						//绿花
+						if((objFlag / 0x4) % 2 == 1) {
+							switch((objFlag / 0x1000000) % 0x8) {
+							case 0x0:
+								path = level.LH.GameStyle | Data::OBJ_2B0;
+								break;
+							case 0x2:
+								path = level.LH.GameStyle | Data::OBJ_2B2;
+								break;
+							case 0x4:
+								path = level.LH.GameStyle | Data::OBJ_2B4;
+								break;
+							case 0x6:
+								path = level.LH.GameStyle | Data::OBJ_2B6;
+								break;
+							}
+						} else {
+							switch((objFlag / 0x1000000) % 0x8) {
+							case 0x0:
+								path = level.LH.GameStyle | Data::OBJ_2A0;
+								break;
+							case 0x2:
+								path = level.LH.GameStyle | Data::OBJ_2A2;
+								break;
+							case 0x4:
+								path = level.LH.GameStyle | Data::OBJ_2A4;
+								break;
+							case 0x6:
+								path = level.LH.GameStyle | Data::OBJ_2A6;
+								break;
+							}
+						}
+
+						switch((objFlag / 0x1000000) % 0x8) {
+							//方向6上 4下 0左 2右
+						case 0x0: // L
+							LX = std::round((float)((objH / 2.0 - 1 + objX / 160.0) * Zm));
+							LY = (H + objW + (std::round(objW) / 2) / 2.0) * Zm
+								 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
+
+							DrawImage(path, (float)((-objW * 3 / 2.0 + objX / 160.0) * Zm),
+								(H + objW) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
+									+ KY,
+								Zm * objW * 2, Zm * objH);
+							break;
+						case 0x2: // R
+							LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+							LY = (H + objW + (std::round(objW) / 2) / 2.0) * Zm
+								 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
+
+							DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+								(H + objW) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
+									+ KY,
+								Zm * objW * 2, Zm * objH);
+							break;
+						case 0x4: // D
+							LX = std::round(
+								(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+										* Zm));
+							LY = (H + objW) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
+								 + KY;
+
+							DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+								(H + objW) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
+									+ KY,
+								Zm * objW, Zm * objH * 2);
+							break;
+						case 0x6: // U
+							LX = std::round(
+								(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+										* Zm));
+							LY = (H + objH + (std::round(objW) / 2)) * Zm
+								 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
+
+							DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+								H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
+								Zm * objW, Zm * objH * 2);
+							break;
+						}
+						break;
+					}
+					case 107: {
+						if((objFlag / 0x4) % 2 == 1) {
+							switch(objFlag / 0x1000000) {
+							case 0x0:
+								path = level.LH.GameStyle | Data::OBJ_107EC;
+								break;
+							case 0x2:
+								path = level.LH.GameStyle | Data::OBJ_107EA;
+								break;
+							case 0x4:
+								path = level.LH.GameStyle | Data::OBJ_107EB;
+								break;
+							case 0x6:
+								path = level.LH.GameStyle | Data::OBJ_107E;
+								break;
+							}
+						} else {
+							switch(objFlag / 0x1000000) {
+							case 0x0:
+								path = level.LH.GameStyle | Data::OBJ_107C;
+								break;
+							case 0x2:
+								path = level.LH.GameStyle | Data::OBJ_107A;
+								break;
+							case 0x4:
+								path = level.LH.GameStyle | Data::OBJ_107B;
+								break;
+							case 0x6:
+								path = level.LH.GameStyle | Data::OBJ_107;
+								break;
+							}
+						}
+
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, LX, LY, Zm * 2, Zm * 2);
+
+						DrawCrp(level.MapObj[i].Ex, objX, objY);
+						break;
+					}
+					case 32: {
+						switch(objFlag) {
+						case 0x6000040:
+							path = level.LH.GameStyle | Data::OBJ_32;
+							break;
+						case 0x6400040:
+							path = level.LH.GameStyle | Data::OBJ_32A;
+							break;
+						case 0x6800040:
+							path = level.LH.GameStyle | Data::OBJ_32B;
+							break;
+						case 0x6C00040:
+							path = level.LH.GameStyle | Data::OBJ_32C;
+							break;
+						case 0x6000044:
+							path = level.LH.GameStyle | Data::OBJ_32D;
+							break;
+						case 0x6400044:
+							path = level.LH.GameStyle | Data::OBJ_32E;
+							break;
+						case 0x6800044:
+							path = level.LH.GameStyle | Data::OBJ_32F;
+							break;
+						case 0x6C00044:
+							path = level.LH.GameStyle | Data::OBJ_32G;
+							break;
+						case 0x7000040:
+							path = level.LH.GameStyle | Data::OBJ_32H;
+							break;
+						}
+
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, LX, LY, Zm * objW, Zm * objH);
+
+						break;
+					}
+					case 1:
+					case 46:
+					case 52:
+					case 58: {
+						//慢慢龟，碎碎龟，花花，扳手
+						path = Data::GetIndex(level.LH.GameStyle, objID,
+							(objFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE);
+
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(
+							H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, LX, LY, Zm * objW, Zm * objH * 2);
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+						break;
+					}
+					case 30: {
+						//裁判
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 1 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_30, LX, LY, Zm, Zm * 2);
+						DrawImage(level.LH.GameStyle | Data::OBJ_31, LX - Zm / 2, LY + Zm / 2,
+							Zm * 2, Zm);
+						break;
+					}
+					case 31: {
+						//裁判云
+						level.ObjLinkType[objLid + 1] = 31;
+						LX = std::round((float)((-objW / 2.0 - 0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_31, LX, LY, Zm * 2, Zm);
+
+						break;
+					}
+					case 45: //鞋 耀西
+					{
+						switch(level.LH.GameStyle) {
+						case 21847:
+						case 22349: // U W
+							if(objW == 2) {
+								path = level.LH.GameStyle | Data::OBJ_45A;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_45;
+							}
+							break;
+						default:
+							if((objFlag / 0x4) % 2 == 1) {
+								path = level.LH.GameStyle | Data::OBJ_45A;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_45;
+							}
+							break;
+						}
+
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(
+							H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, LX, LY, Zm * objW, Zm * objH * 2);
+
+						LX = std::round(
+							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
+									* Zm));
+						LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
+										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						break;
+					}
+					case 62: {
+						//库巴
+						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+						switch(level.LH.GameStyle) {
+						case 22323:
+							path = level.LH.GameStyle | Data::OBJ_62A;
+							break;
+						default:
+							path = level.LH.GameStyle | Data::OBJ_62;
+							break;
+						}
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 3: {
+						//德莱文
+						switch(level.LH.GameStyle) {
+						case 22323:
+							if((objFlag / 0x4) % 2 == 1) {
+								LX = std::round((float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm));
+								LY = std::round(H * Zm - (float)((1 + objY / 160.0) * Zm) + KY);
+
+								DrawImage(level.LH.GameStyle | Data::OBJ_3B,
+									(float)((-objW / 2.0 + objX / 160.0) * Zm),
+									(H)*Zm - (float)((1.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+									Zm * objH);
+							} else {
+								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+								LY = std::round(
+									H * Zm - (float)((objH * 2.0 - 1.5 + objY / 160.0) * Zm) + KY);
+
+								DrawImage(level.LH.GameStyle | Data::OBJ_3,
+									(float)((-objW / 2.0 + objX / 160.0) * Zm),
+									(H + 2) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
+										+ KY,
+									Zm * objW, Zm * objH);
+							}
+							break;
+						default:
+							if((objFlag / 0x4000) % 2 == 1) {
+								LX = std::round((float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm));
+								LY = std::round(H * Zm - (float)((1 + objY / 160.0) * Zm) + KY);
+
+								DrawImage(level.LH.GameStyle | Data::OBJ_3A,
+									(float)((-objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((1.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+									Zm * objH);
+							} else {
+								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+								LY = std::round(
+									H * Zm - (float)((objH * 2.0 - 1.5 + objY / 160.0) * Zm) + KY);
+
+								DrawImage(level.LH.GameStyle | Data::OBJ_3,
+									(float)((-objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
+									Zm * objW, 2 * Zm * objH);
+							}
+							break;
+						}
+
+						break;
+					}
+					case 13: {
+						if((objFlag / 0x4) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_13B;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_13;
+						}
+
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImageOpacity(path, 0.7, LX, LY, Zm * objW, Zm * 2);
+
+						for(int j = 2; j < objH; j++) {
+							if((objFlag / 0x4) % 2 == 1) {
+								DrawImageOpacity(level.LH.GameStyle | Data::OBJ_13C, 0.7, LX,
+									LY + j * Zm, Zm, Zm);
+							} else {
+								DrawImageOpacity(level.LH.GameStyle | Data::OBJ_13A, 0.7, LX,
+									LY + j * Zm, Zm, Zm);
+							}
+						}
+
+						break;
+					}
+					case 39: {
+						//魔法师
+						LX = std::round((float)((2.0 - objW / 2.0 - objW + objX / 160.0) * Zm));
+						LY = std::round(
+							(H + 1) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_39, LX - Zm - Zm, LY - Zm + KY,
+							2 * Zm * objW + KY, 2 * Zm * objH);
+						break;
+					}
+					case 47: {
+						float ANG = 0;
+						LX        = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
+						LY        = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm));
+
+						switch(objFlag / 0x100000) {
+						// UDLR
+						case 0xC:
+						case 0x30:
+						case 0x64:
+							ANG = 0.0;
+							break;
+						case 0x10:
+						case 0x2C:
+						case 0x44:
+							ANG = 3.14159;
+							break;
+						case 0x4:
+						case 0x4C:
+						case 0x70:
+							ANG = 4.71239;
+							break;
+						case 0x24:
+						case 0x50:
+						case 0x6C:
+							ANG = 1.5708;
+							// UL UR DL DR
+							break;
+						case 0x8:
+						case 0x60:
+							ANG = 5.49779;
+							break;
+						case 0x20:
+						case 0x68:
+							ANG = 0.785398;
+							break;
+						case 0x0:
+						case 0x48:
+							ANG = 3.92699;
+							break;
+						case 0x28:
+						case 0x40:
+							ANG = 2.35619;
+							break;
+						}
+
+						int flag = (objFlag / 0x4) % 2 == 1;
+						if(flag) {
+							path = level.LH.GameStyle | Data::OBJ_47E;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_47;
+						}
+
+						DrawImageRotate(path, ANG,
+							LX + std::round(objW * Zm) / 2.0 - std::round(objW * Zm) / 2,
+							LY + std::round(objH * Zm) / 2.0 - std::round(objH * Zm) / 2, Zm * objW,
+							Zm * objH);
+
+						switch(objFlag / 0x100000) {
+						case 0x0:
+						case 0x4:
+						case 0x8:
+						case 0xC:
+						case 0x10:
+							if(flag) {
+								path = level.LH.GameStyle | Data::OBJ_47ED;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_47D;
+							}
+							break;
+						case 0x2:
+						case 0x24:
+						case 0x28:
+						case 0x2C:
+						case 0x30:
+							if(flag) {
+								path = level.LH.GameStyle | Data::OBJ_47EB;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_47B;
+							}
+							break;
+						case 0x40:
+						case 0x44:
+						case 0x48:
+						case 0x4C:
+						case 0x50:
+							if(flag) {
+								path = level.LH.GameStyle | Data::OBJ_47EC;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_47C;
+							}
+							break;
+						default:
+							if(flag) {
+								path = level.LH.GameStyle | Data::OBJ_47EA;
+							} else {
+								path = level.LH.GameStyle | Data::OBJ_47A;
+							}
+							break;
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 61: {
+						//汪汪
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
+						if((objFlag / 0x4) % 2 == 0) {
+							DrawImage(level.LH.GameStyle | Data::OBJ_61A,
+								(float)((-0.5 + objX / 160.0) * Zm),
+								H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY, Zm, Zm);
+						}
+						DrawImage(level.LH.GameStyle | Data::OBJ_61,
+							(float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 78: {
+						//仙人掌
+						LX = std::round((float)(-objW / 2.0 + objX / 160.0) * Zm);
+						LY = std::round(
+							(H + 1) * Zm - (float)((objH + std::round(objY) / 160.0) * Zm) + KY);
+
+						for(int j = 0; j < objH; j++) {
+							if(j == objH - 1) {
+								DrawImage(level.LH.GameStyle | Data::OBJ_78,
+									(float)(-objW / 2.0 + objX / 160.0) * Zm,
+									(H - 1) * Zm - (float)((j + std::round(objY) / 160.0) * Zm)
+										+ KY,
+									Zm, Zm);
+							} else {
+								DrawImage(level.LH.GameStyle | Data::OBJ_78A,
+									(float)(-objW / 2.0 + objX / 160.0) * Zm,
+									(H - 1) * Zm - (float)((j + std::round(objY) / 160.0) * Zm)
+										+ KY,
+									Zm, Zm);
+							}
+						}
+						break;
+					}
+					case 111: {
+						if((objFlag / 0x40000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_111B;
+						} else if((objFlag / 0x80000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_111A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_111;
+						}
+
+						LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
+						LY = std::round(
+							(H + 1) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(path, (float)((-objW + objX / 160.0) * Zm),
+							H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
+							2 * Zm * objW, 2 * Zm * objH);
+						break;
+					}
+					case 70: {
+						if((objFlag / 0x40000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_70A;
+						} else if((objFlag / 0x80000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_70B;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_70;
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+
+						LX = std::round((float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 1 + objY / 160.0) * Zm) + KY);
+						break;
+					}
+					case 110: {
+						//刺方块
+						if((objFlag / 0x40000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_110A;
+						} else if((objFlag / 0x80000) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_110B;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_110;
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 98: {
+						LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
+						LY = std::round(
+							(H + 1) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_98,
+							(float)((-objW + objX / 160.0) * Zm),
+							H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
+							2 * Zm * objW, 2 * Zm * objH);
+						break;
+					}
+					case 103: {
+						//骨鱼
+						LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_103,
+							(float)((-objW + objX / 160.0) * Zm) + KY, LY, 2 * Zm * objW,
+							Zm * objH);
+
+						break;
+					}
+					case 91: {
+						for(int j = 0; j < objW; j++) {
+							if(j == 0) {
+								DrawImage(level.LH.GameStyle | Data::OBJ_91A,
+									(float)((j - std::round(objW) / 2 + std::round(objX) / 160.0)
+											* Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+							} else if(j == objW - 1) {
+								DrawImage(level.LH.GameStyle | Data::OBJ_91B,
+									(float)((j - std::round(objW) / 2 + std::round(objX) / 160.0)
+											* Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+							} else {
+								DrawImage(level.LH.GameStyle | Data::OBJ_91,
+									(float)((j - std::round(objW) / 2 + std::round(objX) / 160.0)
+											* Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+							}
+						}
+
+						DrawImage(level.LH.GameStyle | Data::OBJ_91C,
+							(float)((-0.5 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
+
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm));
+						break;
+					}
+					case 36: {
+						if((objFlag / 0x4) % 2 == 1) {
+							path = level.LH.GameStyle | Data::OBJ_36A;
+						} else {
+							path = level.LH.GameStyle | Data::OBJ_36;
+						}
+
+						if(objLid != -1) {
+							objW = 1;
+						}
+
+						for(int j = 0; j < objW; j++) {
+							DrawImage(path,
+								(float)((j - std::round(objW) / 2 + std::round(objX) / 160.0) * Zm),
+								H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm, Zm);
+						}
+
+						LX = std::round(
+							(float)((objW - 1 - std::round(objW) / 2.0 + std::round(objX) / 160.0)
+									* Zm));
+						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
+						break;
+					}
+					case 11: {
+						//升降台
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
+
+						for(int j = 0; j < objW; j++) {
+							if((objFlag / 0x4) % 2 == 0) {
+								if(j == 0) {
+									path = level.LH.GameStyle | Data::OBJ_11A;
+								} else if(j == objW - 1) {
+									path = level.LH.GameStyle | Data::OBJ_11B;
+								} else {
+									path = level.LH.GameStyle | Data::OBJ_11;
+								}
+
+								DrawImage(path, (float)((j - objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm,
+									Zm);
+							} else {
+								if(j == 0) {
+									path = level.LH.GameStyle | Data::OBJ_11D;
+								} else if(j == objW - 1) {
+									path = level.LH.GameStyle | Data::OBJ_11E;
+								} else {
+									path = level.LH.GameStyle | Data::OBJ_11C;
+								}
+
+								DrawImage(path, (float)((j - objW / 2.0 + objX / 160.0) * Zm),
+									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm,
+									Zm);
+							}
+						}
+
+						if((objFlag / 0x4) % 2 == 0) {
+							switch((objFlag) % 0x100) {
+							case 0x40:
+								DrawImage(Data::OBJ_CMN_D1, LX, LY, Zm, Zm);
+								break;
+							case 0x48:
+								DrawImage(Data::OBJ_CMN_D2, LX, LY, Zm, Zm);
+								break;
+							case 0x50:
+								DrawImage(Data::OBJ_CMN_D0, LX, LY, Zm, Zm);
+								break;
+							case 0x58:
+								DrawImage(Data::OBJ_CMN_D3, LX, LY, Zm, Zm);
+								break;
+							}
+						}
+
+						break;
+					}
+					case 54: {
+						//喷枪
+						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
+						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
+						switch((objFlag) % 0x100) {
+						case 0x40:
+							path = level.LH.GameStyle | Data::OBJ_54;
+							break;
+						case 0x48:
+							path = level.LH.GameStyle | Data::OBJ_54A;
+							break;
+						case 0x50:
+							path = level.LH.GameStyle | Data::OBJ_54B;
+							break;
+						case 0x58:
+							path = level.LH.GameStyle | Data::OBJ_54C;
+							break;
+						case 0x44:
+							path = level.LH.GameStyle | Data::OBJ_54;
+							break;
+						case 0x4C:
+							path = level.LH.GameStyle | Data::OBJ_54A;
+							break;
+						case 0x54:
+							path = level.LH.GameStyle | Data::OBJ_54B;
+							break;
+						case 0x5C:
+							path = level.LH.GameStyle | Data::OBJ_54C;
+						}
+
+						DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
+							H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * objW,
+							Zm * objH);
+						break;
+					}
+					case 24: {
+						//火棍
+						LX = std::round((float)(-objW / 2.0 + objX / 160.0) * Zm);
+						LY = std::round(H * Zm - (float)(objH - 0.5 + objY / 160.0) * Zm);
+						DrawImage(level.LH.GameStyle | Data::OBJ_24, LX, LY, Zm, Zm);
+
+						break;
+					}
+					case 105: {
+						//夹子
+						if((objFlag) % 0x400 >= 0x100) {
+							KY                            = Zm * 3;
+							level.ObjLinkType[objLid + 1] = 105;
+						} else {
+							KY                            = 0;
+							level.ObjLinkType[objLid + 1] = 105;
+						}
+						LX = std::round((float)(-1.5 + objX / 160.0) * Zm);
+						LY = std::round(H * Zm - (float)(3.5 + objY / 160.0) * Zm + KY);
 
 						if((objFlag / 0x80) % 2 == 1) {
-							path = level.LH.GameStyle | Data::OBJ_105A;
+							DrawImage(level.LH.GameStyle | Data::OBJ_105A, LX, LY, Zm * 3, Zm * 5);
 						} else {
-							path = level.LH.GameStyle | Data::OBJ_105;
+							DrawImage(level.LH.GameStyle | Data::OBJ_105, LX, LY, Zm * 3, Zm * 5);
 						}
+						break;
+					}
+					}
 
-						DrawImage(path, (float)(-1.5 + objX / 160.0) * Zm,
-							H * Zm - (float)(0.5 + objY / 160.0) * Zm + KY, Zm * 3, Zm * 5);
-
-						if(objCid != -1) {
-							path = Data::GetIndex(level.LH.GameStyle, objCid,
-								(level.MapObj[i].CFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE,
-								Data::CID);
-							DrawImage(level.LH.GameStyle | path, LX, LY + KY, Zm, Zm);
-						}
+					bool P = ((objFlag / 0x8000) % 2 == 1);
+					bool W = ((objFlag / 2) % 2 == 1);
+					path   = 0;
+					if(P && W) {
+						path = level.LH.GameStyle | Data::OBJ_CID_B;
 					} else {
-						switch(level.ObjLinkType[objLid + 1]) {
-						case 9: //管道L
-							KY = ((std::min(objW, objH) - 1) / 2) * Zm;
-							break;
-						case 105: //夹子L
-							KY = std::round(-Zm / 4.0);
-							break;
-						case 59: //轨道
-							KY = ((std::min(objW, objH) - 1) / 2) * Zm;
-							break;
-						case 31:
-							KY = 0; // 3 * Zm
-							break;
-						case 106: //树
-							KY = 0;
-							break;
-						case 0:
-							KY = 0;
-							break;
+						if(P) {
+							path = level.LH.GameStyle | Data::OBJ_CID_P;
+						} else if(W) {
+							path = level.LH.GameStyle | Data::OBJ_CID_W;
 						}
+					}
 
-						if((objLid + 1 == 0 && !L) || (objLid + 1 > 0 && L) || objID == 9) {
-							switch(objID) {
-							case 14: {
-								//蘑菇平台
-								if((objFlag / 0x40000) % 2 == 1) {
-									tileY = 3;
-								} else if((objFlag / 0x80000) % 2 == 1) {
-									tileY = 4;
-								} else {
-									tileY = 2;
-								}
+					if(path) {
+						DrawImage(path, LX, LY, Zm / 2, Zm / 2);
+					}
 
-								for(int j = 0; j < objW; j++) {
-									int tileX = 4;
-									if(j == 0) {
-										tileX = 3;
-									} else if(j == objW - 1) {
-										tileX = 5;
-									}
-									DrawTile(tileX, tileY, 1, 1,
-										(float)((j - 0.5 + objX / 160.0) * Zm),
-										H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
-								}
+					if(L && level.ObjLinkType[objLid + 1] == 59) {
+						int cmnId = objFlag % 0x400000 / 0x100000;
+						path      = Data::GetIndex(0, Data::D0 + cmnId, Data::NONE, Data::CMN);
 
-								if(objW % 2 == 0) {
-									for(int j = 1; j < objH; j++) {
-										tileY = 2;
-										if(j == 1) {
-											tileY = 1;
-										}
-
-										DrawTile(6, tileY, 1, 1,
-											(float)((objX / 160.0 + objW / 2.0 - 1.5) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0 - j) * Zm),
-											Zm, Zm);
-										DrawTile(7, tileY, 1, 1,
-											(float)((objX / 160.0 + objW / 2.0 - 0.5) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0 - j) * Zm),
-											Zm, Zm);
-									}
-								} else {
-									for(int j = 1; j < objH; j++) {
-										tileY = 4;
-										if(j == 1) {
-											tileY = 3;
-										}
-
-										DrawTile(6, tileY, 1, 1,
-											(float)((0.5 + objX / 160.0 + (objW - 3) / 2.0) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0 - j) * Zm),
-											Zm, Zm);
-									}
-								}
-								break;
-							}
-							case 16: {
-								//半碰撞地形
-								if((objFlag / 0x40000) % 2 == 1) {
-									tileY = 10;
-								} else if((objFlag / 0x80000) % 2 == 1) {
-									tileY = 13;
-								} else {
-									tileY = 7;
-								}
-
-								for(int j = 0; j < objW; j++) {
-									int offsetX = 1;
-									if(j == 0) {
-										offsetX = 0;
-									} else if(j == (objW - 1)) {
-										offsetX = 2;
-									}
-
-									for(int y = 0; y < objH; y++) {
-										int offsetY = 5;
-
-										if(y == 0) {
-											offsetY = 3;
-										} else if(y == 1) {
-											offsetY = 4;
-										} else if(y == (objH - 1)) {
-											offsetY = 6;
-										}
-
-										DrawTile(tileY + offsetX, offsetY, 1, 1,
-											(float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((objH - 0.5 - y + objY / 160.0) * Zm),
-											Zm, Zm);
-									}
-								}
-								break;
-							}
-							case 71: {
-								// 3D半碰撞地形
-								int TL;
-								int TM;
-								int TR;
-
-								for(tileY = 0; tileY < objH; tileY++) {
-									if(tileY == 0) {
-										TL = level.LH.GameStyle | Data::OBJ_71;
-										TM = level.LH.GameStyle | Data::OBJ_71A;
-										TR = level.LH.GameStyle | Data::OBJ_71B;
-									} else if(tileY == objH - 1) {
-										TL = level.LH.GameStyle | Data::OBJ_71F;
-										TM = level.LH.GameStyle | Data::OBJ_71G;
-										TR = level.LH.GameStyle | Data::OBJ_71H;
-									} else {
-										TL = level.LH.GameStyle | Data::OBJ_71C;
-										TM = level.LH.GameStyle | Data::OBJ_71D;
-										TR = level.LH.GameStyle | Data::OBJ_71E;
-									}
-
-									for(int j = 0; j < objW; j++) {
-										path = TM;
-										if(j == 0) {
-											path = TL;
-										} else if(j == objW - 1) {
-											path = TR;
-										}
-
-										DrawImage(path, (float)((j - 0.5 + objX / 160.0) * Zm),
-											(H + tileY) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm),
-											Zm, Zm);
-									}
-								}
-								break;
-							}
-							case 17: {
-								for(int j = 0; j < objW; j++) {
-									if(j == 0) {
-										DrawTile(0, 2, 1, 2, (float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm,
-											Zm * 2);
-									} else if(j == objW - 1) {
-										DrawTile(2, 2, 1, 2, (float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm,
-											Zm * 2);
-									} else {
-										DrawTile(1, 2, 1, 2, (float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm,
-											Zm * 2);
-									}
-								}
-								break;
-							}
-							case 113:
-							case 132: {
-								if((objFlag / 0x4) % 2 == 1) {
-									for(int j = 0; j < objW; j++) {
-										if(j == 0) {
-											path = Data::GetIndex(
-												level.LH.GameStyle, objID, Data::D_);
-										} else if(j == objW - 1) {
-											path = Data::GetIndex(
-												level.LH.GameStyle, objID, Data::E_);
-										} else {
-											path = Data::GetIndex(
-												level.LH.GameStyle, objID, Data::C_);
-										}
-
-										DrawImage(path,
-											(float)((j - objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
-									}
-								} else {
-									for(int j = 0; j < objW; j++) {
-										if(j == 0) {
-											path = Data::GetIndex(
-												level.LH.GameStyle, objID, Data::A_);
-										} else if(j == objW - 1) {
-											path = Data::GetIndex(
-												level.LH.GameStyle, objID, Data::B_);
-										} else {
-											path = Data::GetIndex(level.LH.GameStyle, objID);
-										}
-
-										DrawImage(path,
-											(float)((j - objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
-									}
-								}
-
-								break;
-							}
-							case 66:
-							case 67:
-							case 90: {
-								//箭头 单向板 中间旗
-								switch(objFlag) {
-								case 0x6000040:
-									path = Data::GetIndex(level.LH.GameStyle, objID);
-									break;
-								case 0x6400040:
-									path = Data::GetIndex(level.LH.GameStyle, objID, Data::A_);
-									break;
-								case 0x6800040:
-									path = Data::GetIndex(level.LH.GameStyle, objID, Data::B_);
-									break;
-								case 0x6C00040:
-									path = Data::GetIndex(level.LH.GameStyle, objID, Data::C_);
-									break;
-								case 0x7000040:
-									path = level.LH.GameStyle | Data::OBJ_66D;
-									break;
-								case 0x7400040:
-									path = level.LH.GameStyle | Data::OBJ_66E;
-									break;
-								case 0x7800040:
-									path = level.LH.GameStyle | Data::OBJ_66F;
-									break;
-								case 0x7C00040:
-									path = level.LH.GameStyle | Data::OBJ_66G;
-									break;
-								}
-
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((objH / 2.0 + objY / 160.0) * Zm));
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
-									Zm * objH);
-								break;
-							}
-							case 83: //狼牙棒
-							{
-								switch(objFlag) {
-								case 0x6000040:
-									path = level.LH.GameStyle | Data::OBJ_83;
-									break;
-								case 0x6400040:
-									path = level.LH.GameStyle | Data::OBJ_83A;
-									break;
-								case 0x6800040:
-									path = level.LH.GameStyle | Data::OBJ_83B;
-									break;
-								case 0x6C00040:
-									path = level.LH.GameStyle | Data::OBJ_83C;
-									break;
-								case 0x7000040:
-									path = level.LH.GameStyle | Data::OBJ_83C;
-									break;
-								case 0x7400040:
-									path = level.LH.GameStyle | Data::OBJ_83C;
-									break;
-								case 0x7800040:
-									path = level.LH.GameStyle | Data::OBJ_83C;
-									break;
-								case 0x7C00040:
-									path = level.LH.GameStyle | Data::OBJ_83C;
-									break;
-								}
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((objH / 2.0 + objY / 160.0) * Zm));
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
-									Zm * objH);
-								break;
-							}
-							case 64: {
-								for(int j = 1; j <= objH; j++) {
-									if(j == 1) {
-										DrawTile(13, 7, 1, 1,
-											(float)(-objW / 2.0 + objX / 160.0) * Zm,
-											H * Zm - (float)((j + std::round(objY) / 160.0) * Zm),
-											Zm, Zm);
-									} else if(j == objH) {
-										DrawTile(15, 7, 1, 1,
-											(float)(-objW / 2.0 + objX / 160.0) * Zm,
-											H * Zm - (float)((j + std::round(objY) / 160.0) * Zm),
-											Zm, Zm);
-									} else {
-										DrawTile(14, 7, 1, 1,
-											(float)(-objW / 2.0 + objX / 160.0) * Zm,
-											H * Zm - (float)((j + std::round(objY) / 160.0) * Zm),
-											Zm, Zm);
-									}
-								}
-								break;
-							}
-							case 4:
-							case 5:
-							case 6:
-							case 21:
-							case 22:
-							case 23:
-							case 29:
-							case 63:
-							case 79:
-							case 99:
-							case 100:
-							case 43:
-							case 8: {
-								int PP = 0;
-								if((objFlag / 0x4) % 2 == 1) {
-									PP = 1;
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawTile(level.TileLoc[objID][PP].X, level.TileLoc[objID][PP].Y, 1,
-									1, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-								break;
-							}
-							case 108: {
-								//闪烁砖
-								if((objFlag / 0x4) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_108A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_108;
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 106: //树
-							{
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH + 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_106,
-									(float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm * 4,
-									Zm * 4);
-
-								for(int j = 4; j < objH; j++) {
-									DrawImage(level.LH.GameStyle | Data::OBJ_106A,
-										(float)((-objW / 2.0 + 1.5 + objX / 160.0) * Zm),
-										(H + j) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm)
-											+ KY,
-										Zm, Zm);
-								}
-								DrawImage(level.LH.GameStyle | Data::OBJ_106B,
-									(float)((-objW / 2.0 + 1 + objX / 160.0) * Zm),
-									H * Zm - (float)((-0.5 + objY / 160.0) * Zm) + KY, Zm * 2, Zm);
-								break;
-							}
-							case 85:
-							case 119: {
-								//机动砖 轨道砖
-								if((objFlag / 0x4) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_85A;
-								} else {
-									if(objID == 85) {
-										path = level.LH.GameStyle | Data::OBJ_85;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_119;
-									}
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								DrawMoveBlock(objID, level.MapObj[i].Ex, objX, objY);
-								break;
-							}
-							case 94: {
-								//斜传送带
-								Point C1;
-								Point C2;
-								if((objFlag / 0x400000) % 2 == 0) {
-									C1 = Point(8, 0);
-									C2 = Point(4, 16);
-								} else {
-									C1 = Point(13, 24);
-									C2 = Point(10, 22);
-								}
-								if((objFlag / 0x200000) % 0x2 == 0) {
-									//左斜
-									LX = std::round((float)((-1 + objW / 2.0 + objX / 160.0) * Zm));
-									LY = std::round((H - 0.5 - objH / 2) * Zm
-													- (float)((-0.5 + objY / 160.0) * Zm));
-
-									DrawTile(C1.X, C1.Y, 1, 1, (float)((-0.5 + objX / 160.0) * Zm),
-										(H - 1) * Zm - (float)((-0.5 + objY / 160.0) * Zm), Zm, Zm);
-
-									DrawTile(C1.X + 2, C1.Y, 1, 1,
-										(float)((objW - 1.5 + objX / 160.0) * Zm),
-										(H - 1) * Zm - (float)((objH - 1.5 + objY / 160.0) * Zm),
-										Zm, Zm);
-
-									for(int j = 1; j <= objW - 2; j++) {
-										DrawTile(C2.X + 1, C2.Y, 1, 2,
-											(float)((j - 0.5 + objX / 160.0) * Zm),
-											(H - 1) * Zm - (float)((j - 0.5 + objY / 160.0) * Zm),
-											Zm, Zm * 2);
-									}
-
-								} else {
-									//右斜
-									LX = std::round((float)((-1 + objW / 2.0 + objX / 160.0) * Zm));
-									LY = std::round((H - 0.5 - objH / 2) * Zm
-													- (float)((-0.5 + objY / 160.0) * Zm));
-
-									DrawTile(C1.X, C1.Y, 1, 1, (float)((-0.5 + objX / 160.0) * Zm),
-										(H - 1) * Zm - (float)((objH - 1.5 + objY / 160.0) * Zm),
-										Zm, Zm);
-
-									DrawTile(C1.X + 2, C1.Y, 1, 1,
-										(float)((objW - 1.5 + objX / 160.0) * Zm),
-										(H - 1) * Zm - (float)((-0.5 + objY / 160.0) * Zm), Zm, Zm);
-
-									for(int j = 1; j <= objW - 2; j++) {
-										DrawTile(C2.X + 4, C2.Y, 1, 2,
-											(float)((j - 0.5 + objX / 160.0) * Zm),
-											(H - 1) * Zm
-												- (float)((-0.5 - j + objH + objY / 160.0) * Zm),
-											Zm, Zm * 2);
-									}
-								}
-
-								if((objFlag / 0x40000) % 2 == 0) {
-									if((objFlag / 0x8) % 2 == 1) {
-										DrawImage(Data::OBJ_CMN_A1, LX, LY, Zm, Zm);
-									} else {
-										DrawImage(Data::OBJ_CMN_A0, LX, LY, Zm, Zm);
-									}
-								} else {
-									if((objFlag / 0x8) % 2 == 1) {
-										DrawImage(Data::OBJ_CMN_A3, LX, LY, Zm, Zm);
-									} else {
-										DrawImage(Data::OBJ_CMN_A2, LX, LY, Zm, Zm);
-									}
-								}
-								break;
-							}
-							case 53: {
-								//传送带
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
-								Point C1;
-								if((objFlag / 0x400000) % 2 == 0) {
-									C1 = Point(8, 0);
-								} else {
-									C1 = Point(13, 24);
-								}
-
-								for(int j = 0; j < objW; j++) {
-									if(j == 0) {
-										DrawTile(C1.X, C1.Y, 1, 1,
-											(float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
-									} else if(j == objW - 1) {
-										DrawTile(C1.X + 2, C1.Y, 1, 1,
-											(float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
-									} else {
-										DrawTile(C1.X + 1, C1.Y, 1, 1,
-											(float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, Zm);
-									}
-
-									if((objFlag) / 0x40000 % 2 == 0) {
-										if((objFlag / 0x8) % 2 == 1) {
-											DrawImage(Data::OBJ_CMN_A1,
-												LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm,
-												Zm);
-										} else {
-											DrawImage(Data::OBJ_CMN_A0,
-												LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm,
-												Zm);
-										}
-									} else {
-										if((objFlag / 0x8) % 2 == 1) {
-											DrawImage(Data::OBJ_CMN_A3,
-												LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm,
-												Zm);
-										} else {
-											DrawImage(Data::OBJ_CMN_A2,
-												LX + std::round((-0.5 + objW / 2) * Zm), LY, Zm,
-												Zm);
-										}
-									}
-								}
-								break;
-							}
-							case 9: {
-								level.ObjLinkType[objLid + 1] = 9;
-								int PP                        = ((objFlag / 0x10000) % 0x10) / 4;
-								switch(objFlag % 0x80) {
-								case 0x0: { // R
-									LX = std::round(
-										(float)((objH - 1 - 1 - 0.5 + objX / 160.0) * Zm));
-									LY = std::round(H * Zm - (float)((objY / 160.0) * Zm));
-
-									for(int j = 0; j <= (objH - 2); j++) {
-										DrawTile(level.PipeLoc[PP][4].X, level.PipeLoc[PP][4].Y, 1,
-											2, (float)((j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm,
-											2 * Zm);
-									}
-									DrawTile(level.PipeLoc[PP][3].X, level.PipeLoc[PP][3].Y, 1, 2,
-										(float)((objH - 1.5 + objX / 160.0) * Zm),
-										H * Zm - (float)((0.5 + objY / 160.0) * Zm), Zm, 2 * Zm);
-								} break;
-								case 0x20: { // L
-									LX = std::round(
-										(float)((-objH + 1 + 1 - 0.5 + objX / 160.0) * Zm));
-									LY = std::round(H * Zm - (float)((1 + objY / 160.0) * Zm));
-
-									for(int j = 0; j <= (objH - 2); j++) {
-										DrawTile(level.PipeLoc[PP][4].X, level.PipeLoc[PP][4].Y, 1,
-											2, (float)((-j - 0.5 + objX / 160.0) * Zm),
-											H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm,
-											2 * Zm);
-									}
-									DrawTile(level.PipeLoc[PP][2].X, level.PipeLoc[PP][2].Y, 1, 2,
-										(float)((-objH + 0.5 + objX / 160.0) * Zm),
-										H * Zm - (float)((1.5 + objY / 160.0) * Zm), Zm, 2 * Zm);
-								} break;
-								case 0x40: { // U
-									LX = std::round((float)((+objX / 160.0) * Zm));
-									LY = (H - objH + 1 + 1) * Zm
-										 - (float)((0.5 + objY / 160.0) * Zm);
-
-									for(int j = 0; j <= (objH - 2); j++) {
-										DrawTile(level.PipeLoc[PP][5].X, level.PipeLoc[PP][5].Y, 2,
-											1, (float)((-0.5 + objX / 160.0) * Zm),
-											(H - j) * Zm - (float)((0.5 + objY / 160.0) * Zm),
-											2 * Zm, Zm);
-									}
-									DrawTile(level.PipeLoc[PP][0].X, level.PipeLoc[PP][0].Y, 2, 1,
-										(float)((-0.5 + objX / 160.0) * Zm),
-										(H - objH + 1) * Zm - (float)((0.5 + objY / 160.0) * Zm),
-										2 * Zm, Zm);
-								} break;
-								case 0x60: { // D
-									LX = std::round((float)((-1 + objX / 160.0) * Zm));
-									LY = (H + objH - 1 - 1) * Zm
-										 - (float)((0.5 + objY / 160.0) * Zm);
-
-									for(int j = 0; j <= (objH - 2); j++) {
-										DrawTile(level.PipeLoc[PP][5].X, level.PipeLoc[PP][5].Y, 2,
-											1, (float)((-1.5 + objX / 160.0) * Zm),
-											(H + j) * Zm - (float)((0.5 + objY / 160.0) * Zm),
-											2 * Zm, Zm);
-									}
-									DrawTile(level.PipeLoc[PP][1].X, level.PipeLoc[PP][1].Y, 2, 1,
-										(float)((-1.5 + objX / 160.0) * Zm),
-										(H + objH - 1) * Zm - (float)((0.5 + objY / 160.0) * Zm),
-										2 * Zm, Zm);
-								} break;
-								}
-
-								int cmnId = objFlag % 0x1000000 / 0x100000 - 1;
-								if(cmnId != -1) {
-									path = Data::GetIndex(
-										0, Data::C0 + cmnId, Data::NONE, Data::CMN);
-								}
-
-								if(path) {
-									DrawImage(path, LX, LY, Zm, Zm);
-								}
-
-								break;
-							}
-							case 55: {
-								//门
-								if((objFlag / 0x40000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_55A;
-								} else if((objFlag / 0x80000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_55B;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_55;
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
-									Zm * objH);
-
-								int cmnId = objFlag % 0x800000 / 0x200000;
-								path = Data::GetIndex(0, Data::C0 + cmnId, Data::NONE, Data::CMN);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									(H + 1) * Zm - (float)((objH + objY / 160.0) * Zm), Zm, Zm);
-								break;
-							}
-							case 97: {
-								//传送箱
-								if((objFlag / 0x4) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_97A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_97;
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
-									Zm * objH);
-
-								int cmnId = objFlag % 0x800000 / 0x200000;
-								path = Data::GetIndex(0, Data::C0 + cmnId, Data::NONE, Data::CMN);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
-								break;
-							}
-							case 84: {
-								for(int j = 0; j < objW; j++) {
-									if((objFlag / 0x4) % 2 == 1) {
-										DrawImage(level.LH.GameStyle | Data::OBJ_84A,
-											(float)((j - objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm,
-											Zm);
-									} else {
-										DrawImage(level.LH.GameStyle | Data::OBJ_84,
-											(float)((j - objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm,
-											Zm);
-									}
-								}
-								//&H10方向
-								DrawSnake(level.MapObj[i].Ex, objX, objY, objW, objH);
-
-								break;
-							}
-							case 68:
-							case 82: {
-								if(objID == 68) {
-									path = level.LH.GameStyle | Data::OBJ_68;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_82;
-								}
-
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round((H - 1.5) * Zm - (float)((objY / 160.0) * Zm) + KY);
-
-								DrawImageOpacity(path, 0.7,
-									(float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 0:
-							case 10:
-							case 15:
-							case 19:
-							case 20:
-							case 35:
-							case 48:
-							case 56:
-							case 57:
-							case 60:
-							case 76:
-							case 92:
-							case 95:
-							case 102:
-							case 72:
-							case 50:
-							case 51:
-							case 65:
-							case 80:
-							case 114:
-							case 77:
-							case 104:
-							case 120:
-							case 121:
-							case 122:
-							case 123:
-							case 124:
-							case 125:
-							case 126:
-							case 112:
-							case 127:
-							case 128:
-							case 129:
-							case 130:
-							case 131:
-							case 96:
-							case 117:
-							case 86: {
-								path = Data::GetIndex(level.LH.GameStyle, objID,
-									(objFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE);
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-								break;
-							}
-							case 33: {
-								// 1UP
-								if(level.MapHdr.Theme == 0 && level.MapHdr.Flag == 2) {
-									path = level.LH.GameStyle | Data::OBJ_33A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_33;
-								}
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 74: {
-								//加邦
-								if((objFlag / 0x4) % 2 == 1) {
-									if(level.MapHdr.Theme == 6) {
-										path = level.LH.GameStyle | Data::OBJ_74B;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_74A;
-									}
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_74;
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 42: {
-								//飞机
-								if((objFlag / 0x4 % 2 == 1) || (objFlag / 0x40000 % 2 == 1)) {
-									path = level.LH.GameStyle | Data::OBJ_42A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_42;
-								}
-								LX = std::round(
-									(float)((-1 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
-											* Zm));
-								LY = (H + objH / 2.0 - 0.5) * Zm
-									 - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY;
-
-								DrawImage(path, (float)((-1 + objX / 160.0) * Zm),
-									(H + objH / 2.0 - 0.5) * Zm
-										- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * 2, Zm * 2);
-
-								break;
-							}
-							case 34: {
-								//火花
-								if((objFlag / 0x4) % 2 == 1) {
-									if((objFlag / 0x40000) % 2 == 1) {
-										path = level.LH.GameStyle | Data::OBJ_34C;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_34A;
-									}
-								} else {
-									if((objFlag / 0x40000) % 2 == 1) {
-										path = level.LH.GameStyle | Data::OBJ_34B;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_34;
-									}
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 81:
-							case 116: {
-								// USA  锤子
-
-								if((objFlag / 0x40000) % 2 == 1) {
-									if(objID == 81) {
-										path = level.LH.GameStyle | Data::OBJ_81A;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_116A;
-									}
-								} else {
-									if(objID == 81) {
-										path = level.LH.GameStyle | Data::OBJ_81;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_116;
-									}
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 44: {
-								//大蘑菇
-
-								if((objFlag / 0x40000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_44A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_44;
-								}
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 12: {
-								//咚咚
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = (H + objH / 2.0 - 0.5) * Zm
-									 - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY;
-
-								DrawImageOpacity(level.LH.GameStyle | Data::OBJ_12, 0.7,
-									(float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								if(objLid == -1) {
-									switch((objFlag) % 0x100) {
-									case 0x40:
-									case 0x42:
-									case 0x44:
-										DrawImage(Data::OBJ_CMN_E1, LX, LY, Zm, Zm);
-										break;
-									case 0x48:
-									case 0x4A:
-									case 0x4C:
-										DrawImage(Data::OBJ_CMN_E2, LX, LY, Zm, Zm);
-										break;
-									case 0x50:
-									case 0x52:
-									case 0x54:
-										DrawImage(Data::OBJ_CMN_E0, LX, LY, Zm, Zm);
-										break;
-									case 0x58:
-									case 0x5A:
-									case 0x5C:
-										DrawImage(Data::OBJ_CMN_E3, LX, LY, Zm, Zm);
-										break;
-									}
-								}
-
-								break;
-							}
-							case 41: {
-								//幽灵
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-								switch(level.LH.GameStyle) {
-								case 22323:
-									if((objFlag / 0x4) % 2 == 1) {
-										path = level.LH.GameStyle | Data::OBJ_41D;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_41;
-									}
-									break;
-								default:
-									if((objFlag / 0x4) % 2 == 1) {
-										path = level.LH.GameStyle | Data::OBJ_41A;
-									} else if((objFlag / 0x1000000) % 0x8 == 0x4) {
-										path = level.LH.GameStyle | Data::OBJ_41C;
-									} else if((objFlag / 0x100) % 2 == 1) {
-										path = level.LH.GameStyle | Data::OBJ_41B;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_41;
-									}
-									break;
-								}
-								DrawImage(path, LX, LY, Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 28:
-							case 25:
-							case 18: {
-								//钢盔 刺龟 P
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-								if((objFlag / 0x4) % 2 == 1) {
-									if(objID == 28) {
-										path = level.LH.GameStyle | Data::OBJ_28A;
-									} else if(objID == 25) {
-										path = level.LH.GameStyle | Data::OBJ_25A;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_18A;
-									}
-								} else if((objFlag / 0x1000000) % 8 == 0x6) {
-									if(objID == 28) {
-										path = level.LH.GameStyle | Data::OBJ_28;
-									} else if(objID == 25) {
-										path = level.LH.GameStyle | Data::OBJ_25;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_18;
-									}
-								} else {
-									if(objID == 28) {
-										path = level.LH.GameStyle | Data::OBJ_28B;
-									} else if(objID == 25) {
-										path = level.LH.GameStyle | Data::OBJ_25B;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_18B;
-									}
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 40: {
-								//小刺龟
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = (H + objW) * Zm
-									 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
-								if((objFlag / 0x4) % 2 == 1) {
-									switch((objFlag / 0x1000000) % 8) {
-										//方向6上 4下 0左 2右
-									case 0x0: // L
-										DrawImage(level.LH.GameStyle | Data::OBJ_40B0, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									case 0x2: // R
-										DrawImage(level.LH.GameStyle | Data::OBJ_40B2, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									case 0x4: // D
-										DrawImage(level.LH.GameStyle | Data::OBJ_40B4, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									case 0x6: // U
-										DrawImage(level.LH.GameStyle | Data::OBJ_40B6, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									}
-								} else {
-									switch((objFlag / 0x1000000) % 8) {
-										//方向6上 4下 0左 2右
-									case 0x0: // L
-										DrawImage(level.LH.GameStyle | Data::OBJ_40A0, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									case 0x2: // R
-										DrawImage(level.LH.GameStyle | Data::OBJ_40A2, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									case 0x4: // D
-										DrawImage(level.LH.GameStyle | Data::OBJ_40A0, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									case 0x6: // U
-										DrawImage(level.LH.GameStyle | Data::OBJ_40A6, LX, LY,
-											Zm * objW, Zm * objH);
-										break;
-									}
-								}
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-								break;
-							}
-							case 2: {
-								//绿花
-								if((objFlag / 0x4) % 2 == 1) {
-									switch((objFlag / 0x1000000) % 0x8) {
-									case 0x0:
-										path = level.LH.GameStyle | Data::OBJ_2B0;
-										break;
-									case 0x2:
-										path = level.LH.GameStyle | Data::OBJ_2B2;
-										break;
-									case 0x4:
-										path = level.LH.GameStyle | Data::OBJ_2B4;
-										break;
-									case 0x6:
-										path = level.LH.GameStyle | Data::OBJ_2B6;
-										break;
-									}
-								} else {
-									switch((objFlag / 0x1000000) % 0x8) {
-									case 0x0:
-										path = level.LH.GameStyle | Data::OBJ_2A0;
-										break;
-									case 0x2:
-										path = level.LH.GameStyle | Data::OBJ_2A2;
-										break;
-									case 0x4:
-										path = level.LH.GameStyle | Data::OBJ_2A4;
-										break;
-									case 0x6:
-										path = level.LH.GameStyle | Data::OBJ_2A6;
-										break;
-									}
-								}
-
-								switch((objFlag / 0x1000000) % 0x8) {
-									//方向6上 4下 0左 2右
-								case 0x0: // L
-									LX = std::round((float)((objH / 2.0 - 1 + objX / 160.0) * Zm));
-									LY = (H + objW + (std::round(objW) / 2) / 2.0) * Zm
-										 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
-
-									DrawImage(path, (float)((-objW * 3 / 2.0 + objX / 160.0) * Zm),
-										(H + objW) * Zm
-											- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
-										Zm * objW * 2, Zm * objH);
-									break;
-								case 0x2: // R
-									LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-									LY = (H + objW + (std::round(objW) / 2) / 2.0) * Zm
-										 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
-
-									DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-										(H + objW) * Zm
-											- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
-										Zm * objW * 2, Zm * objH);
-									break;
-								case 0x4: // D
-									LX = std::round(
-										(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-													+ objX / 160.0)
-												* Zm));
-									LY = (H + objW) * Zm
-										 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
-
-									DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-										(H + objW) * Zm
-											- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
-										Zm * objW, Zm * objH * 2);
-									break;
-								case 0x6: // U
-									LX = std::round(
-										(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-													+ objX / 160.0)
-												* Zm));
-									LY = (H + objH + (std::round(objW) / 2)) * Zm
-										 - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
-
-									DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-										H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
-											+ KY,
-										Zm * objW, Zm * objH * 2);
-									break;
-								}
-								break;
-							}
-							case 107: {
-								if((objFlag / 0x4) % 2 == 1) {
-									switch(objFlag / 0x1000000) {
-									case 0x0:
-										path = level.LH.GameStyle | Data::OBJ_107EC;
-										break;
-									case 0x2:
-										path = level.LH.GameStyle | Data::OBJ_107EA;
-										break;
-									case 0x4:
-										path = level.LH.GameStyle | Data::OBJ_107EB;
-										break;
-									case 0x6:
-										path = level.LH.GameStyle | Data::OBJ_107E;
-										break;
-									}
-								} else {
-									switch(objFlag / 0x1000000) {
-									case 0x0:
-										path = level.LH.GameStyle | Data::OBJ_107C;
-										break;
-									case 0x2:
-										path = level.LH.GameStyle | Data::OBJ_107A;
-										break;
-									case 0x4:
-										path = level.LH.GameStyle | Data::OBJ_107B;
-										break;
-									case 0x6:
-										path = level.LH.GameStyle | Data::OBJ_107;
-										break;
-									}
-								}
-
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, LX, LY, Zm * 2, Zm * 2);
-
-								DrawCrp(level.MapObj[i].Ex, objX, objY);
-								break;
-							}
-							case 32: {
-								switch(objFlag) {
-								case 0x6000040:
-									path = level.LH.GameStyle | Data::OBJ_32;
-									break;
-								case 0x6400040:
-									path = level.LH.GameStyle | Data::OBJ_32A;
-									break;
-								case 0x6800040:
-									path = level.LH.GameStyle | Data::OBJ_32B;
-									break;
-								case 0x6C00040:
-									path = level.LH.GameStyle | Data::OBJ_32C;
-									break;
-								case 0x6000044:
-									path = level.LH.GameStyle | Data::OBJ_32D;
-									break;
-								case 0x6400044:
-									path = level.LH.GameStyle | Data::OBJ_32E;
-									break;
-								case 0x6800044:
-									path = level.LH.GameStyle | Data::OBJ_32F;
-									break;
-								case 0x6C00044:
-									path = level.LH.GameStyle | Data::OBJ_32G;
-									break;
-								case 0x7000040:
-									path = level.LH.GameStyle | Data::OBJ_32H;
-									break;
-								}
-
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, LX, LY, Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 1:
-							case 46:
-							case 52:
-							case 58: {
-								//慢慢龟，碎碎龟，花花，扳手
-								path = Data::GetIndex(level.LH.GameStyle, objID,
-									(objFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE);
-
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, LX, LY, Zm * objW, Zm * objH * 2);
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-								break;
-							}
-							case 30: {
-								//裁判
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 1 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_30, LX, LY, Zm, Zm * 2);
-								DrawImage(level.LH.GameStyle | Data::OBJ_31, LX - Zm / 2,
-									LY + Zm / 2, Zm * 2, Zm);
-								break;
-							}
-							case 31: {
-								//裁判云
-								level.ObjLinkType[objLid + 1] = 31;
-								LX = std::round((float)((-objW / 2.0 - 0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_31, LX, LY, Zm * 2, Zm);
-
-								break;
-							}
-							case 45: //鞋 耀西
-							{
-								switch(level.LH.GameStyle) {
-								case 21847:
-								case 22349: // U W
-									if(objW == 2) {
-										path = level.LH.GameStyle | Data::OBJ_45A;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_45;
-									}
-									break;
-								default:
-									if((objFlag / 0x4) % 2 == 1) {
-										path = level.LH.GameStyle | Data::OBJ_45A;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_45;
-									}
-									break;
-								}
-
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(path, LX, LY, Zm * objW, Zm * objH * 2);
-
-								LX = std::round((float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0
-															+ objX / 160.0)
-														* Zm));
-								LY = std::round((H + (std::round(objH) / 2) / 2.0) * Zm
-												- (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								break;
-							}
-							case 62: {
-								//库巴
-								LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-								switch(level.LH.GameStyle) {
-								case 22323:
-									path = level.LH.GameStyle | Data::OBJ_62A;
-									break;
-								default:
-									path = level.LH.GameStyle | Data::OBJ_62;
-									break;
-								}
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								break;
-							}
-							case 3: {
-								//德莱文
-								switch(level.LH.GameStyle) {
-								case 22323:
-									if((objFlag / 0x4) % 2 == 1) {
-										LX = std::round(
-											(float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm));
-										LY = std::round(
-											H * Zm - (float)((1 + objY / 160.0) * Zm) + KY);
-
-										DrawImage(level.LH.GameStyle | Data::OBJ_3B,
-											(float)((-objW / 2.0 + objX / 160.0) * Zm),
-											(H)*Zm - (float)((1.5 + objY / 160.0) * Zm) + KY,
-											Zm * objW, Zm * objH);
-									} else {
-										LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-										LY = std::round(
-											H * Zm - (float)((objH * 2.0 - 1.5 + objY / 160.0) * Zm)
-											+ KY);
-
-										DrawImage(level.LH.GameStyle | Data::OBJ_3,
-											(float)((-objW / 2.0 + objX / 160.0) * Zm),
-											(H + 2) * Zm
-												- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
-												+ KY,
-											Zm * objW, Zm * objH);
-									}
-									break;
-								default:
-									if((objFlag / 0x4000) % 2 == 1) {
-										LX = std::round(
-											(float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm));
-										LY = std::round(
-											H * Zm - (float)((1 + objY / 160.0) * Zm) + KY);
-
-										DrawImage(level.LH.GameStyle | Data::OBJ_3A,
-											(float)((-objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((1.5 + objY / 160.0) * Zm) + KY,
-											Zm * objW, Zm * objH);
-									} else {
-										LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-										LY = std::round(
-											H * Zm - (float)((objH * 2.0 - 1.5 + objY / 160.0) * Zm)
-											+ KY);
-
-										DrawImage(level.LH.GameStyle | Data::OBJ_3,
-											(float)((-objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
-												+ KY,
-											Zm * objW, 2 * Zm * objH);
-									}
-									break;
-								}
-
-								break;
-							}
-							case 13: {
-								if((objFlag / 0x4) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_13B;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_13;
-								}
-
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImageOpacity(path, 0.7, LX, LY, Zm * objW, Zm * 2);
-
-								for(int j = 2; j < objH; j++) {
-									if((objFlag / 0x4) % 2 == 1) {
-										DrawImageOpacity(level.LH.GameStyle | Data::OBJ_13C, 0.7,
-											LX, LY + j * Zm, Zm, Zm);
-									} else {
-										DrawImageOpacity(level.LH.GameStyle | Data::OBJ_13A, 0.7,
-											LX, LY + j * Zm, Zm, Zm);
-									}
-								}
-
-								break;
-							}
-							case 39: {
-								//魔法师
-								LX = std::round(
-									(float)((2.0 - objW / 2.0 - objW + objX / 160.0) * Zm));
-								LY = std::round((H + 1) * Zm
-												- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
-												+ KY);
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_39, LX - Zm - Zm,
-									LY - Zm + KY, 2 * Zm * objW + KY, 2 * Zm * objH);
-								break;
-							}
-							case 47: {
-								float ANG = 0;
-								LX        = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm));
-
-								switch(objFlag / 0x100000) {
-								// UDLR
-								case 0xC:
-								case 0x30:
-								case 0x64:
-									ANG = 0.0;
-									break;
-								case 0x10:
-								case 0x2C:
-								case 0x44:
-									ANG = 3.14159;
-									break;
-								case 0x4:
-								case 0x4C:
-								case 0x70:
-									ANG = 4.71239;
-									break;
-								case 0x24:
-								case 0x50:
-								case 0x6C:
-									ANG = 1.5708;
-									// UL UR DL DR
-									break;
-								case 0x8:
-								case 0x60:
-									ANG = 5.49779;
-									break;
-								case 0x20:
-								case 0x68:
-									ANG = 0.785398;
-									break;
-								case 0x0:
-								case 0x48:
-									ANG = 3.92699;
-									break;
-								case 0x28:
-								case 0x40:
-									ANG = 2.35619;
-									break;
-								}
-
-								int flag = (objFlag / 0x4) % 2 == 1;
-								if(flag) {
-									path = level.LH.GameStyle | Data::OBJ_47E;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_47;
-								}
-
-								DrawImageRotate(path, ANG,
-									LX + std::round(objW * Zm) / 2.0 - std::round(objW * Zm) / 2,
-									LY + std::round(objH * Zm) / 2.0 - std::round(objH * Zm) / 2,
-									Zm * objW, Zm * objH);
-
-								switch(objFlag / 0x100000) {
-								case 0x0:
-								case 0x4:
-								case 0x8:
-								case 0xC:
-								case 0x10:
-									if(flag) {
-										path = level.LH.GameStyle | Data::OBJ_47ED;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_47D;
-									}
-									break;
-								case 0x2:
-								case 0x24:
-								case 0x28:
-								case 0x2C:
-								case 0x30:
-									if(flag) {
-										path = level.LH.GameStyle | Data::OBJ_47EB;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_47B;
-									}
-									break;
-								case 0x40:
-								case 0x44:
-								case 0x48:
-								case 0x4C:
-								case 0x50:
-									if(flag) {
-										path = level.LH.GameStyle | Data::OBJ_47EC;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_47C;
-									}
-									break;
-								default:
-									if(flag) {
-										path = level.LH.GameStyle | Data::OBJ_47EA;
-									} else {
-										path = level.LH.GameStyle | Data::OBJ_47A;
-									}
-									break;
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm * objW,
-									Zm * objH);
-								break;
-							}
-							case 61: {
-								//汪汪
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
-								if((objFlag / 0x4) % 2 == 0) {
-									DrawImage(level.LH.GameStyle | Data::OBJ_61A,
-										(float)((-0.5 + objX / 160.0) * Zm),
-										H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY, Zm, Zm);
-								}
-								DrawImage(level.LH.GameStyle | Data::OBJ_61,
-									(float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-								break;
-							}
-							case 78: {
-								//仙人掌
-								LX = std::round((float)(-objW / 2.0 + objX / 160.0) * Zm);
-								LY = std::round((H + 1) * Zm
-												- (float)((objH + std::round(objY) / 160.0) * Zm)
-												+ KY);
-
-								for(int j = 0; j < objH; j++) {
-									if(j == objH - 1) {
-										DrawImage(level.LH.GameStyle | Data::OBJ_78,
-											(float)(-objW / 2.0 + objX / 160.0) * Zm,
-											(H - 1) * Zm
-												- (float)((j + std::round(objY) / 160.0) * Zm) + KY,
-											Zm, Zm);
-									} else {
-										DrawImage(level.LH.GameStyle | Data::OBJ_78A,
-											(float)(-objW / 2.0 + objX / 160.0) * Zm,
-											(H - 1) * Zm
-												- (float)((j + std::round(objY) / 160.0) * Zm) + KY,
-											Zm, Zm);
-									}
-								}
-								break;
-							}
-							case 111: {
-								if((objFlag / 0x40000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_111B;
-								} else if((objFlag / 0x80000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_111A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_111;
-								}
-
-								LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
-								LY = std::round((H + 1) * Zm
-												- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
-												+ KY);
-
-								DrawImage(path, (float)((-objW + objX / 160.0) * Zm),
-									H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
-									2 * Zm * objW, 2 * Zm * objH);
-								break;
-							}
-							case 70: {
-								if((objFlag / 0x40000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_70A;
-								} else if((objFlag / 0x80000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_70B;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_70;
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-
-								LX = std::round((float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 1 + objY / 160.0) * Zm) + KY);
-								break;
-							}
-							case 110: {
-								//刺方块
-								if((objFlag / 0x40000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_110A;
-								} else if((objFlag / 0x80000) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_110B;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_110;
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + 0.5 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-								break;
-							}
-							case 98: {
-								LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
-								LY = std::round((H + 1) * Zm
-												- (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm)
-												+ KY);
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_98,
-									(float)((-objW + objX / 160.0) * Zm),
-									H * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY,
-									2 * Zm * objW, 2 * Zm * objH);
-								break;
-							}
-							case 103: {
-								//骨鱼
-								LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_103,
-									(float)((-objW + objX / 160.0) * Zm) + KY, LY, 2 * Zm * objW,
-									Zm * objH);
-
-								break;
-							}
-							case 91: {
-								for(int j = 0; j < objW; j++) {
-									if(j == 0) {
-										DrawImage(level.LH.GameStyle | Data::OBJ_91A,
-											(float)((j - std::round(objW) / 2
-														+ std::round(objX) / 160.0)
-													* Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm,
-											Zm);
-									} else if(j == objW - 1) {
-										DrawImage(level.LH.GameStyle | Data::OBJ_91B,
-											(float)((j - std::round(objW) / 2
-														+ std::round(objX) / 160.0)
-													* Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm,
-											Zm);
-									} else {
-										DrawImage(level.LH.GameStyle | Data::OBJ_91,
-											(float)((j - std::round(objW) / 2
-														+ std::round(objX) / 160.0)
-													* Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm,
-											Zm);
-									}
-								}
-
-								DrawImage(level.LH.GameStyle | Data::OBJ_91C,
-									(float)((-0.5 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm), Zm, Zm);
-
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm));
-								break;
-							}
-							case 36: {
-								if((objFlag / 0x4) % 2 == 1) {
-									path = level.LH.GameStyle | Data::OBJ_36A;
-								} else {
-									path = level.LH.GameStyle | Data::OBJ_36;
-								}
-
-								if(objLid != -1) {
-									objW = 1;
-								}
-
-								for(int j = 0; j < objW; j++) {
-									DrawImage(path,
-										(float)((j - std::round(objW) / 2
-													+ std::round(objX) / 160.0)
-												* Zm),
-										H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY, Zm,
-										Zm);
-								}
-
-								LX = std::round((float)((objW - 1 - std::round(objW) / 2.0
-															+ std::round(objX) / 160.0)
-														* Zm));
-								LY = std::round(
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
-								break;
-							}
-							case 11: {
-								//升降台
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
-
-								for(int j = 0; j < objW; j++) {
-									if((objFlag / 0x4) % 2 == 0) {
-										if(j == 0) {
-											path = level.LH.GameStyle | Data::OBJ_11A;
-										} else if(j == objW - 1) {
-											path = level.LH.GameStyle | Data::OBJ_11B;
-										} else {
-											path = level.LH.GameStyle | Data::OBJ_11;
-										}
-
-										DrawImage(path,
-											(float)((j - objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-											Zm, Zm);
-									} else {
-										if(j == 0) {
-											path = level.LH.GameStyle | Data::OBJ_11D;
-										} else if(j == objW - 1) {
-											path = level.LH.GameStyle | Data::OBJ_11E;
-										} else {
-											path = level.LH.GameStyle | Data::OBJ_11C;
-										}
-
-										DrawImage(path,
-											(float)((j - objW / 2.0 + objX / 160.0) * Zm),
-											H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-											Zm, Zm);
-									}
-								}
-
-								if((objFlag / 0x4) % 2 == 0) {
-									switch((objFlag) % 0x100) {
-									case 0x40:
-										DrawImage(Data::OBJ_CMN_D1, LX, LY, Zm, Zm);
-										break;
-									case 0x48:
-										DrawImage(Data::OBJ_CMN_D2, LX, LY, Zm, Zm);
-										break;
-									case 0x50:
-										DrawImage(Data::OBJ_CMN_D0, LX, LY, Zm, Zm);
-										break;
-									case 0x58:
-										DrawImage(Data::OBJ_CMN_D3, LX, LY, Zm, Zm);
-										break;
-									}
-								}
-
-								break;
-							}
-							case 54: {
-								//喷枪
-								LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
-								LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
-								switch((objFlag) % 0x100) {
-								case 0x40:
-									path = level.LH.GameStyle | Data::OBJ_54;
-									break;
-								case 0x48:
-									path = level.LH.GameStyle | Data::OBJ_54A;
-									break;
-								case 0x50:
-									path = level.LH.GameStyle | Data::OBJ_54B;
-									break;
-								case 0x58:
-									path = level.LH.GameStyle | Data::OBJ_54C;
-									break;
-								case 0x44:
-									path = level.LH.GameStyle | Data::OBJ_54;
-									break;
-								case 0x4C:
-									path = level.LH.GameStyle | Data::OBJ_54A;
-									break;
-								case 0x54:
-									path = level.LH.GameStyle | Data::OBJ_54B;
-									break;
-								case 0x5C:
-									path = level.LH.GameStyle | Data::OBJ_54C;
-								}
-
-								DrawImage(path, (float)((-objW / 2.0 + objX / 160.0) * Zm),
-									H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY,
-									Zm * objW, Zm * objH);
-								break;
-							}
-							case 24: {
-								//火棍
-								LX = std::round((float)(-objW / 2.0 + objX / 160.0) * Zm);
-								LY = std::round(H * Zm - (float)(objH - 0.5 + objY / 160.0) * Zm);
-								DrawImage(level.LH.GameStyle | Data::OBJ_24, LX, LY, Zm, Zm);
-
-								break;
-							}
-							case 105: {
-								//夹子
-								if((objFlag) % 0x400 >= 0x100) {
-									KY                            = Zm * 3;
-									level.ObjLinkType[objLid + 1] = 105;
-								} else {
-									KY                            = 0;
-									level.ObjLinkType[objLid + 1] = 105;
-								}
-								LX = std::round((float)(-1.5 + objX / 160.0) * Zm);
-								LY = std::round(H * Zm - (float)(3.5 + objY / 160.0) * Zm + KY);
-
-								if((objFlag / 0x80) % 2 == 1) {
-									DrawImage(level.LH.GameStyle | Data::OBJ_105A, LX, LY, Zm * 3,
-										Zm * 5);
-								} else {
-									DrawImage(
-										level.LH.GameStyle | Data::OBJ_105, LX, LY, Zm * 3, Zm * 5);
-								}
-								break;
-							}
-							}
-
-							bool P = ((objFlag / 0x8000) % 2 == 1);
-							bool W = ((objFlag / 2) % 2 == 1);
-							path   = 0;
-							if(P && W) {
-								path = level.LH.GameStyle | Data::OBJ_CID_B;
-							} else {
-								if(P) {
-									path = level.LH.GameStyle | Data::OBJ_CID_P;
-								} else if(W) {
-									path = level.LH.GameStyle | Data::OBJ_CID_W;
-								}
-							}
-
-							if(path) {
-								DrawImage(path, LX, LY, Zm / 2, Zm / 2);
-							}
-
-							if(L && level.ObjLinkType[objLid + 1] == 59) {
-								int cmnId = objFlag % 0x400000 / 0x100000;
-								path = Data::GetIndex(0, Data::D0 + cmnId, Data::NONE, Data::CMN);
-
-								DrawImage(path, LX, LY, Zm, Zm);
-							}
-						}
+						DrawImage(path, LX, LY, Zm, Zm);
 					}
 				}
 			}
