@@ -16,40 +16,38 @@
 #include <ostream>
 #include <thread>
 
-namespace MarioEdit {
-	uint8_t* GetJpeg(uint8_t* level_data, size_t level_size, char* asset_folder, int width,
-		int height, int offset_x, int offset_y) {
-		sk_sp<SkSurface> rasterSurface = SkSurface::MakeRasterN32Premul(width, height);
+uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size, char* asset_folder, int width,
+	int height, int offset_x, int offset_y) {
+	sk_sp<SkSurface> rasterSurface = SkSurface::MakeRasterN32Premul(width, height);
 
-		Level::Parser* levelParser = new Level::Parser();
-		levelParser->LoadLevelData(std::string((char*)level_data, level_size), true);
+	MarioEdit::Level::Parser* levelParser = new MarioEdit::Level::Parser();
+	levelParser->LoadLevelData(std::string((char*)level_data, level_size), true);
 
-		Level::Drawer* drawer = new Level::Drawer(*levelParser, 16);
-		drawer->Setup();
-		drawer->SetIsOverworld(true);
-		drawer->SetLog(false);
-		drawer->SetAssetFolder(asset_folder);
-		drawer->SetGraphics(rasterSurface->getCanvas());
-		drawer->LoadTilesheet();
+	MarioEdit::Level::Drawer* drawer = new MarioEdit::Level::Drawer(*levelParser, 16);
+	drawer->Setup();
+	drawer->SetIsOverworld(true);
+	drawer->SetLog(false);
+	drawer->SetAssetFolder(asset_folder);
+	drawer->SetGraphics(rasterSurface->getCanvas());
+	drawer->LoadTilesheet();
 
-		drawer->SetOffsetX(offset_x);
-		drawer->SetOffsetY(offset_y);
+	drawer->SetOffsetX(offset_x);
+	drawer->SetOffsetY(offset_y);
 
-		rasterSurface->getCanvas()->clear(SK_ColorBLACK);
-		MarioEdit::Viewer::DrawMap(drawer);
-		rasterSurface->getCanvas()->flush();
+	rasterSurface->getCanvas()->clear(SK_ColorBLACK);
+	MarioEdit::Viewer::DrawMap(drawer);
+	rasterSurface->getCanvas()->flush();
 
-		sk_sp<SkImage> img(rasterSurface->makeImageSnapshot());
-		sk_sp<SkData> jpeg(img->encodeToData(SkEncodedImageFormat::kJPEG, 95));
+	sk_sp<SkImage> img(rasterSurface->makeImageSnapshot());
+	sk_sp<SkData> jpeg(img->encodeToData(SkEncodedImageFormat::kJPEG, 95));
 
-		// Copy data into buffer for freeing later
-		uint8_t* ret = (uint8_t*)malloc(jpeg->size());
-		memcpy(ret, jpeg->bytes(), jpeg->size());
+	// Copy data into buffer for freeing later
+	uint8_t* ret = (uint8_t*)malloc(jpeg->size());
+	memcpy(ret, jpeg->bytes(), jpeg->size());
 
-		return ret;
-	}
+	return ret;
+}
 
-	void FreeJpeg(uint8_t* jpeg) {
-		free(jpeg);
-	}
+void MarioEdit_FreeJpeg(uint8_t* jpeg) {
+	free(jpeg);
 }
