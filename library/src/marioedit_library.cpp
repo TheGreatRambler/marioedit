@@ -16,8 +16,9 @@
 #include <ostream>
 #include <thread>
 
-uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size, char* asset_folder, int width,
-	int height, int offset_x, int offset_y, int* thumbnail_size) {
+extern "C" {
+__declspec(dllexport) uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size,
+	char* asset_folder, int width, int height, int offset_x, int offset_y, int* thumbnail_size) {
 	sk_sp<SkSurface> rasterSurface = SkSurface::MakeRasterN32Premul(width, height);
 
 	MarioEdit::Level::Parser* levelParser = new MarioEdit::Level::Parser();
@@ -38,8 +39,16 @@ uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size, char* asset_f
 	MarioEdit::Viewer::DrawMap(drawer);
 	rasterSurface->getCanvas()->flush();
 
-	sk_sp<SkImage> img(rasterSurface->makeImageSnapshot());
-	sk_sp<SkData> jpeg(img->encodeToData(SkEncodedImageFormat::kJPEG, 95));
+	// Keep optimizing until it is below the threshold allowed for encryption
+	int size            = 0x1C001;
+	int current_quality = 100;
+	sk_sp<SkData> jpeg  = nullptr;
+	while(size > 0x1C000) {
+		sk_sp<SkImage> img(rasterSurface->makeImageSnapshot());
+		jpeg = sk_sp<SkData>(img->encodeToData(SkEncodedImageFormat::kJPEG, current_quality));
+		current_quality -= 5;
+		size = jpeg->size();
+	}
 
 	// Copy data into buffer for freeing later
 	uint8_t* ret = (uint8_t*)malloc(jpeg->size());
@@ -49,6 +58,7 @@ uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size, char* asset_f
 	return ret;
 }
 
-void MarioEdit_FreeJpeg(uint8_t* jpeg) {
+__declspec(dllexport) void MarioEdit_FreeJpeg(uint8_t* jpeg) {
 	free(jpeg);
+}
 }

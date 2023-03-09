@@ -31,8 +31,6 @@
 namespace MarioEdit {
 	namespace Viewer {
 		void DrawMap(Level::Drawer* drawer) {
-			drawer->DrawGridlines();
-
 			drawer->DrawItem({ 132 }, false);
 			drawer->DrawItem({ 16 }, false);
 			drawer->DrawItem({ 14 }, false);
@@ -290,6 +288,7 @@ namespace MarioEdit {
 #endif
 
 				canvas->clear(SK_ColorBLACK);
+				drawer->DrawGridlines();
 				DrawMap(drawer);
 
 				int possible_selected = DrawObjectSelect(canvas, drawer, x, y);

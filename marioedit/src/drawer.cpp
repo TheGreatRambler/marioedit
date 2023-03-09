@@ -192,7 +192,8 @@ namespace MarioEdit {
 			linePaint.setStrokeWidth(1);
 			linePaint.setAntiAlias(false);
 
-			SkFont textFont(SkTypeface::MakeFromFile("../marioedit/fonts/NotoSansJP-Bold.otf"));
+			SkFont textFont(SkTypeface::MakeFromFile(
+				fmt::format("{}/fonts/NotoSansJP-Bold.otf", assetFolder).c_str()));
 			textFont.setSize(10);
 			SkPaint textPaint;
 			textPaint.setColor(SK_ColorWHITE);
