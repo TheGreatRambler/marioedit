@@ -6,5 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(marioedit)
 add_subdirectory(main)
+add_subdirectory(shared)
 add_subdirectory(test)
 add_custom_target(marioedit_all ALL DEPENDS main test)
