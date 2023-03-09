@@ -1,7 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <string>
+#include <stdint.h>
 
 namespace MarioEdit {
 	uint8_t* GetJpeg(uint8_t* level_data, size_t level_size, char* asset_folder, int width,
