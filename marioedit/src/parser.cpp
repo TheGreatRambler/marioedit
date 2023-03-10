@@ -466,8 +466,6 @@ namespace MarioEdit {
 
 				MapIce.push_back(newIce);
 			}
-
-			fmt::print("Done parsing {}\n", LH.Name);
 		}
 
 		const char* ObjEng[] = { "Goomba", "Koopa", "Piranha Flower", "Hammer Bro", "Block",
