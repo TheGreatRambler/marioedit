@@ -1,4 +1,4 @@
-#include <marioedit.hpp>
+#include <marioedit/drawer.hpp>
 
 #include <fstream>
 #include <gtest/gtest.h>

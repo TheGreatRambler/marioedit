@@ -1,6 +1,5 @@
 #define SK_GL 1
 
-#include <marioedit.hpp>
 #include <marioedit/drawer.hpp>
 #include <marioedit/parser.hpp>
 #include <marioedit/ui.hpp>
@@ -30,89 +29,6 @@
 
 namespace MarioEdit {
 	namespace Viewer {
-		void DrawMap(Level::Drawer* drawer) {
-			drawer->DrawItem({ 132 }, false);
-			drawer->DrawItem({ 16 }, false);
-			drawer->DrawItem({ 14 }, false);
-			drawer->DrawItem({ 17 }, false);
-			drawer->DrawItem({ 113 }, false);
-			drawer->DrawItem({ 71 }, false);
-
-			drawer->DrawItem({ 66, 67, 106 }, false);
-			drawer->DrawItem({ 64 }, false);
-			drawer->DrawItem({ 90 }, false);
-
-			drawer->DrawItem({ 106, 107 }, false);
-
-			drawer->ReGrdCode();
-			drawer->DrawGrd();
-			// DrawSlope()
-			drawer->DrawGrdCode();
-
-			drawer->DrawItem({ 53, 94, 99, 100, 79 }, false);
-			drawer->DrawIce();
-
-			drawer->DrawItem({ 9, 55, 84, 97 }, false);
-			drawer->DrawItem({ 85, 119 }, false);
-			drawer->DrawItem({ 105 }, false);
-			drawer->DrawTrack();
-			drawer->DrawItem({ 4, 5, 6, 21, 22, 23, 29, 43, 63, 110, 108 }, false);
-
-			drawer->DrawItem({ 91, 36, 11 }, false);
-
-			drawer->DrawItem({ 83 }, false);
-
-			drawer->DrawItem({ 68, 82 }, false);
-
-			drawer->DrawItem(
-				{ 0, 1, 2, 3, 8, 10, 12, 13, 15, 18, 19, 20, 25, 28, 30, 31, 32, 33, 34, 35, 39 },
-				false);
-			drawer->DrawItem({ 40, 41, 42, 44, 45, 46, 47, 48, 52, 56, 57, 58, 60, 61, 62, 70, 74,
-								 76, 77, 78, 81, 92, 95, 98, 102, 103, 104 },
-				false);
-			drawer->DrawItem({ 111, 120, 121, 122, 123, 124, 125, 126, 112, 127, 128, 129, 130, 131,
-								 72, 50, 51, 65, 80, 114, 116 },
-				false);
-			drawer->DrawItem({ 96, 117, 86 }, false);
-			drawer->DrawItem({ 24, 54 }, false);
-
-			// DrawFireBar(False)
-			// DrawFire(False)
-			drawer->DrawItem({ 105 }, false);
-			drawer->DrawTrack();
-			drawer->DrawItem({ 105 }, true);
-			// DrawItem("/89/", False)
-
-			drawer->DrawItem({ 4, 5, 6, 21, 22, 23, 29, 43, 63 }, true);
-
-			drawer->DrawItem({ 91, 36, 11 }, true);
-
-			drawer->DrawItem({ 68, 82 }, true);
-
-			drawer->DrawItem(
-				{ 0, 1, 2, 3, 8, 10, 12, 13, 15, 18, 19, 20, 25, 28, 30, 31, 32, 33, 34, 35, 39 },
-				true);
-			drawer->DrawItem({ 40, 41, 42, 44, 45, 46, 47, 48, 52, 56, 57, 58, 60, 61, 62, 70, 74,
-								 76, 77, 78, 81, 92, 95, 98, 102, 103, 104 },
-				true);
-			drawer->DrawItem({ 111, 120, 121, 122, 123, 124, 125, 126, 112, 127, 128, 129, 130, 131,
-								 72, 50, 51, 65, 80, 114, 116 },
-				true);
-			drawer->DrawItem({ 96, 117, 86 }, true);
-
-			drawer->DrawCID();
-
-			drawer->DrawItem({ 24, 54 }, true);
-			drawer->DrawFireBar();
-			drawer->DrawFire();
-
-			drawer->DrawCPipe();
-
-			if(true) {
-				drawer->DrawItem({ 9, 42 }, true);
-			}
-		}
-
 		int Start() {
 			SDL_Window* window       = nullptr;
 			SDL_GLContext gl_context = nullptr;

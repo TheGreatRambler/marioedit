@@ -5,9 +5,93 @@
 #include <fmt/core.h>
 #include <fmt/format.h>
 #include <fstream>
+#include <unordered_map>
 
 namespace MarioEdit {
 	namespace Level {
+		void DrawMap(Level::Drawer* drawer) {
+			drawer->DrawItem({ 132 }, false);
+			drawer->DrawItem({ 16 }, false);
+			drawer->DrawItem({ 14 }, false);
+			drawer->DrawItem({ 17 }, false);
+			drawer->DrawItem({ 113 }, false);
+			drawer->DrawItem({ 71 }, false);
+
+			drawer->DrawItem({ 66, 67, 106 }, false);
+			drawer->DrawItem({ 64 }, false);
+			drawer->DrawItem({ 90 }, false);
+
+			drawer->DrawItem({ 106, 107 }, false);
+
+			drawer->ReGrdCode();
+			drawer->DrawGrd();
+			// DrawSlope()
+			drawer->DrawGrdCode();
+
+			drawer->DrawItem({ 53, 94, 99, 100, 79 }, false);
+			drawer->DrawIce();
+
+			drawer->DrawItem({ 9, 55, 84, 97 }, false);
+			drawer->DrawItem({ 85, 119 }, false);
+			drawer->DrawItem({ 105 }, false);
+			drawer->DrawTrack();
+			drawer->DrawItem({ 4, 5, 6, 21, 22, 23, 29, 43, 63, 110, 108 }, false);
+
+			drawer->DrawItem({ 91, 36, 11 }, false);
+
+			drawer->DrawItem({ 83 }, false);
+
+			drawer->DrawItem({ 68, 82 }, false);
+
+			drawer->DrawItem(
+				{ 0, 1, 2, 3, 8, 10, 12, 13, 15, 18, 19, 20, 25, 28, 30, 31, 32, 33, 34, 35, 39 },
+				false);
+			drawer->DrawItem({ 40, 41, 42, 44, 45, 46, 47, 48, 52, 56, 57, 58, 60, 61, 62, 70, 74,
+								 76, 77, 78, 81, 92, 95, 98, 102, 103, 104 },
+				false);
+			drawer->DrawItem({ 111, 120, 121, 122, 123, 124, 125, 126, 112, 127, 128, 129, 130, 131,
+								 72, 50, 51, 65, 80, 114, 116 },
+				false);
+			drawer->DrawItem({ 96, 117, 86 }, false);
+			drawer->DrawItem({ 24, 54 }, false);
+
+			// DrawFireBar(False)
+			// DrawFire(False)
+			drawer->DrawItem({ 105 }, false);
+			drawer->DrawTrack();
+			drawer->DrawItem({ 105 }, true);
+			// DrawItem("/89/", False)
+
+			drawer->DrawItem({ 4, 5, 6, 21, 22, 23, 29, 43, 63 }, true);
+
+			drawer->DrawItem({ 91, 36, 11 }, true);
+
+			drawer->DrawItem({ 68, 82 }, true);
+
+			drawer->DrawItem(
+				{ 0, 1, 2, 3, 8, 10, 12, 13, 15, 18, 19, 20, 25, 28, 30, 31, 32, 33, 34, 35, 39 },
+				true);
+			drawer->DrawItem({ 40, 41, 42, 44, 45, 46, 47, 48, 52, 56, 57, 58, 60, 61, 62, 70, 74,
+								 76, 77, 78, 81, 92, 95, 98, 102, 103, 104 },
+				true);
+			drawer->DrawItem({ 111, 120, 121, 122, 123, 124, 125, 126, 112, 127, 128, 129, 130, 131,
+								 72, 50, 51, 65, 80, 114, 116 },
+				true);
+			drawer->DrawItem({ 96, 117, 86 }, true);
+
+			drawer->DrawCID();
+
+			drawer->DrawItem({ 24, 54 }, true);
+			drawer->DrawFireBar();
+			drawer->DrawFire();
+
+			drawer->DrawCPipe();
+
+			if(true) {
+				drawer->DrawItem({ 9, 42 }, true);
+			}
+		}
+
 		void Drawer::Setup() {
 			level.TileLoc[4][0]   = Point(1, 0);
 			level.TileLoc[4][1]   = Point(2, 43);
@@ -943,19 +1027,19 @@ namespace MarioEdit {
 				}
 			} else {
 				switch(level.ObjLinkType[objLid + 1]) {
-				case 9: //管道L
+				case 9: // 管道L
 					KY = ((std::min(objW, objH) - 1) / 2) * Zm;
 					break;
-				case 105: //夹子L
+				case 105: // 夹子L
 					KY = std::round(-Zm / 4.0);
 					break;
-				case 59: //轨道
+				case 59: // 轨道
 					KY = ((std::min(objW, objH) - 1) / 2) * Zm;
 					break;
 				case 31:
 					KY = 0; // 3 * Zm
 					break;
-				case 106: //树
+				case 106:   // 树
 					KY = 0;
 					break;
 				case 0:
@@ -966,7 +1050,7 @@ namespace MarioEdit {
 				if((objLid + 1 == 0 && !L) || (objLid + 1 > 0 && L) || objID == 9) {
 					switch(objID) {
 					case 14: {
-						//蘑菇平台
+						// 蘑菇平台
 						if((objFlag / 0x40000) % 2 == 1) {
 							tileY = 3;
 						} else if((objFlag / 0x80000) % 2 == 1) {
@@ -1015,7 +1099,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 16: {
-						//半碰撞地形
+						// 半碰撞地形
 						if((objFlag / 0x40000) % 2 == 1) {
 							tileY = 10;
 						} else if((objFlag / 0x80000) % 2 == 1) {
@@ -1136,7 +1220,7 @@ namespace MarioEdit {
 					case 66:
 					case 67:
 					case 90: {
-						//箭头 单向板 中间旗
+						// 箭头 单向板 中间旗
 						switch(objFlag) {
 						case 0x6000040:
 							path = Data::GetIndex(level.LH.GameStyle, objID);
@@ -1172,7 +1256,7 @@ namespace MarioEdit {
 							Zm * objH);
 						break;
 					}
-					case 83: //狼牙棒
+					case 83: // 狼牙棒
 					{
 						switch(objFlag) {
 						case 0x6000040:
@@ -1254,7 +1338,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 108: {
-						//闪烁砖
+						// 闪烁砖
 						if((objFlag / 0x4) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_108A;
 						} else {
@@ -1273,7 +1357,7 @@ namespace MarioEdit {
 
 						break;
 					}
-					case 106: //树
+					case 106: // 树
 					{
 						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((objH + 0.5 + objY / 160.0) * Zm) + KY);
@@ -1296,7 +1380,7 @@ namespace MarioEdit {
 					}
 					case 85:
 					case 119: {
-						//机动砖 轨道砖
+						// 机动砖 轨道砖
 						if((objFlag / 0x4) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_85A;
 						} else {
@@ -1321,7 +1405,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 94: {
-						//斜传送带
+						// 斜传送带
 						Point C1;
 						Point C2;
 						if((objFlag / 0x400000) % 2 == 0) {
@@ -1332,7 +1416,7 @@ namespace MarioEdit {
 							C2 = Point(10, 22);
 						}
 						if((objFlag / 0x200000) % 0x2 == 0) {
-							//左斜
+							// 左斜
 							LX = std::round((float)((-1 + objW / 2.0 + objX / 160.0) * Zm));
 							LY = std::round(
 								(H - 0.5 - objH / 2) * Zm - (float)((-0.5 + objY / 160.0) * Zm));
@@ -1352,7 +1436,7 @@ namespace MarioEdit {
 							}
 
 						} else {
-							//右斜
+							// 右斜
 							LX = std::round((float)((-1 + objW / 2.0 + objX / 160.0) * Zm));
 							LY = std::round(
 								(H - 0.5 - objH / 2) * Zm - (float)((-0.5 + objY / 160.0) * Zm));
@@ -1388,7 +1472,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 53: {
-						//传送带
+						// 传送带
 						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
 						Point C1;
@@ -1504,7 +1588,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 55: {
-						//门
+						// 门
 						if((objFlag / 0x40000) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_55A;
 						} else if((objFlag / 0x80000) % 2 == 1) {
@@ -1525,7 +1609,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 97: {
-						//传送箱
+						// 传送箱
 						if((objFlag / 0x4) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_97A;
 						} else {
@@ -1649,7 +1733,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 74: {
-						//加邦
+						// 加邦
 						if((objFlag / 0x4) % 2 == 1) {
 							if(level.MapHdr.Theme == 6) {
 								path = level.LH.GameStyle | Data::OBJ_74B;
@@ -1673,7 +1757,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 42: {
-						//飞机
+						// 飞机
 						if((objFlag / 0x4 % 2 == 1) || (objFlag / 0x40000 % 2 == 1)) {
 							path = level.LH.GameStyle | Data::OBJ_42A;
 						} else {
@@ -1692,7 +1776,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 34: {
-						//火花
+						// 火花
 						if((objFlag / 0x4) % 2 == 1) {
 							if((objFlag / 0x40000) % 2 == 1) {
 								path = level.LH.GameStyle | Data::OBJ_34C;
@@ -1750,7 +1834,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 44: {
-						//大蘑菇
+						// 大蘑菇
 
 						if((objFlag / 0x40000) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_44A;
@@ -1771,7 +1855,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 12: {
-						//咚咚
+						// 咚咚
 						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 						LY = (H + objH / 2.0 - 0.5) * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm)
 							 + KY;
@@ -1809,7 +1893,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 41: {
-						//幽灵
+						// 幽灵
 						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
 						switch(level.LH.GameStyle) {
@@ -1839,7 +1923,7 @@ namespace MarioEdit {
 					case 28:
 					case 25:
 					case 18: {
-						//钢盔 刺龟 P
+						// 钢盔 刺龟 P
 						LX = std::round(
 							(float)((-objW / 2.0 + (std::round(objW) / 2) / 2.0 + objX / 160.0)
 									* Zm));
@@ -1878,12 +1962,12 @@ namespace MarioEdit {
 						break;
 					}
 					case 40: {
-						//小刺龟
+						// 小刺龟
 						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
 						LY = (H + objW) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY;
 						if((objFlag / 0x4) % 2 == 1) {
 							switch((objFlag / 0x1000000) % 8) {
-								//方向6上 4下 0左 2右
+								// 方向6上 4下 0左 2右
 							case 0x0: // L
 								DrawImage(level.LH.GameStyle | Data::OBJ_40B0, LX, LY, Zm * objW,
 									Zm * objH);
@@ -1903,7 +1987,7 @@ namespace MarioEdit {
 							}
 						} else {
 							switch((objFlag / 0x1000000) % 8) {
-								//方向6上 4下 0左 2右
+								// 方向6上 4下 0左 2右
 							case 0x0: // L
 								DrawImage(level.LH.GameStyle | Data::OBJ_40A0, LX, LY, Zm * objW,
 									Zm * objH);
@@ -1930,7 +2014,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 2: {
-						//绿花
+						// 绿花
 						if((objFlag / 0x4) % 2 == 1) {
 							switch((objFlag / 0x1000000) % 0x8) {
 							case 0x0:
@@ -1964,7 +2048,7 @@ namespace MarioEdit {
 						}
 
 						switch((objFlag / 0x1000000) % 0x8) {
-							//方向6上 4下 0左 2右
+							// 方向6上 4下 0左 2右
 						case 0x0: // L
 							LX = std::round((float)((objH / 2.0 - 1 + objX / 160.0) * Zm));
 							LY = (H + objW + (std::round(objW) / 2) / 2.0) * Zm
@@ -2094,7 +2178,7 @@ namespace MarioEdit {
 					case 46:
 					case 52:
 					case 58: {
-						//慢慢龟，碎碎龟，花花，扳手
+						// 慢慢龟，碎碎龟，花花，扳手
 						path = Data::GetIndex(level.LH.GameStyle, objID,
 							(objFlag / 0x4) % 2 == 1 ? Data::A_ : Data::NONE);
 
@@ -2112,7 +2196,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 30: {
-						//裁判
+						// 裁判
 						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((objH - 1 + objY / 160.0) * Zm) + KY);
 
@@ -2122,7 +2206,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 31: {
-						//裁判云
+						// 裁判云
 						level.ObjLinkType[objLid + 1] = 31;
 						LX = std::round((float)((-objW / 2.0 - 0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
@@ -2131,7 +2215,7 @@ namespace MarioEdit {
 
 						break;
 					}
-					case 45: //鞋 耀西
+					case 45: // 鞋 耀西
 					{
 						switch(level.LH.GameStyle) {
 						case 21847:
@@ -2166,7 +2250,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 62: {
-						//库巴
+						// 库巴
 						LX = std::round((float)((-objW / 2.0 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
 						switch(level.LH.GameStyle) {
@@ -2184,7 +2268,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 3: {
-						//德莱文
+						// 德莱文
 						switch(level.LH.GameStyle) {
 						case 22323:
 							if((objFlag / 0x4) % 2 == 1) {
@@ -2256,7 +2340,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 39: {
-						//魔法师
+						// 魔法师
 						LX = std::round((float)((2.0 - objW / 2.0 - objW + objX / 160.0) * Zm));
 						LY = std::round(
 							(H + 1) * Zm - (float)((objH * 2.0 - 0.5 + objY / 160.0) * Zm) + KY);
@@ -2372,7 +2456,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 61: {
-						//汪汪
+						// 汪汪
 						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
 						if((objFlag / 0x4) % 2 == 0) {
@@ -2387,7 +2471,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 78: {
-						//仙人掌
+						// 仙人掌
 						LX = std::round((float)(-objW / 2.0 + objX / 160.0) * Zm);
 						LY = std::round(
 							(H + 1) * Zm - (float)((objH + std::round(objY) / 160.0) * Zm) + KY);
@@ -2445,7 +2529,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 110: {
-						//刺方块
+						// 刺方块
 						if((objFlag / 0x40000) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_110A;
 						} else if((objFlag / 0x80000) % 2 == 1) {
@@ -2471,7 +2555,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 103: {
-						//骨鱼
+						// 骨鱼
 						LX = std::round((float)((-objW + 0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((objH - 0.5 + objY / 160.0) * Zm) + KY);
 
@@ -2533,7 +2617,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 11: {
-						//升降台
+						// 升降台
 						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
 
@@ -2585,7 +2669,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 54: {
-						//喷枪
+						// 喷枪
 						LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 						LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm) + KY);
 						switch((objFlag) % 0x100) {
@@ -2620,7 +2704,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 24: {
-						//火棍
+						// 火棍
 						LX = std::round((float)(-objW / 2.0 + objX / 160.0) * Zm);
 						LY = std::round(H * Zm - (float)(objH - 0.5 + objY / 160.0) * Zm);
 						DrawImage(level.LH.GameStyle | Data::OBJ_24, LX, LY, Zm, Zm);
@@ -2628,7 +2712,7 @@ namespace MarioEdit {
 						break;
 					}
 					case 105: {
-						//夹子
+						// 夹子
 						if((objFlag) % 0x400 >= 0x100) {
 							KY                            = Zm * 3;
 							level.ObjLinkType[objLid + 1] = 105;
@@ -2690,11 +2774,11 @@ namespace MarioEdit {
 
 				switch(level.MapObj[i].ID) {
 				case 87:
-					//缓坡
+					// 缓坡
 					CX = std::round((-0.5 + objX / 160.0));
 					CY = std::round((-0.5 + objY / 160.0));
 					if((objFlag / 0x100000) % 0x2 == 0) {
-						//左斜
+						// 左斜
 						switch(level.GroundNode[CX + 1][CY + 1]) {
 						case 0:
 							level.GroundNode[CX + 1][CY + 1] = 23;
@@ -2739,7 +2823,7 @@ namespace MarioEdit {
 							level.GroundNode[CX + 2.0 + j][CY + 1 + (j / 2)] = 16;
 						}
 					} else {
-						//右斜
+						// 右斜
 						switch(level.GroundNode[CX + 1][CY + objH]) {
 						case 0:
 							level.GroundNode[CX + 1][CY + objH] = 21;
@@ -2786,11 +2870,11 @@ namespace MarioEdit {
 					}
 					break;
 				case 88:
-					//陡坡
+					// 陡坡
 					CX = std::round((-0.5 + objX / 160.0));
 					CY = std::round((-0.5 + objY / 160.0));
 					if((objFlag / 0x100000) % 0x2 == 0) {
-						//左斜
+						// 左斜
 						switch(level.GroundNode[CX + 1][CY + 1]) {
 						case 0:
 							level.GroundNode[CX + 1][CY + 1] = 9;
@@ -2833,7 +2917,7 @@ namespace MarioEdit {
 							}
 						}
 					} else {
-						//右斜
+						// 右斜
 						switch(level.GroundNode[CX + 1][CY + objH]) {
 						case 0:
 							level.GroundNode[CX + 1][CY + objH] = 7;
@@ -2960,7 +3044,7 @@ namespace MarioEdit {
 			// K = GetTile(0, 12, 1, 1); //Image.FromFile(PT & "\img\" & LH.GameStyle.ToString &
 			// "\obj\7 )
 			if(NowIO) {
-				//终点
+				// 终点
 				switch(level.LH.GameStyle) {
 				case 12621: // 1
 					if(level.MapHdr.Theme == 2) {
@@ -3576,7 +3660,7 @@ namespace MarioEdit {
 		}
 
 		void Drawer::DrawGrdCode() {
-			//绘制地形
+			// 绘制地形
 			int i = 0;
 			int j = 0;
 			Point R;
@@ -3850,19 +3934,19 @@ namespace MarioEdit {
 				LX = std::round((float)((-0.5 + objX / 160.0) * Zm));
 				LY = std::round(H * Zm - (float)((0.5 + objY / 160.0) * Zm));
 				switch(objCid) {
-				case -1: //无
+				case -1: // 无
 
 					break;
 				case 44:
 				case 81:
-				case 116: //状态
+				case 116: // 状态
 					path = Data::GetIndex(level.LH.GameStyle, objCid,
 						(level.MapObj[i].CFlag / 0x40000) % 2 == 1 ? Data::A_ : Data::NONE,
 						Data::CID);
 					DrawImage(path, LX, LY, Zm, Zm);
 					DrawImage(Data::OBJ_CMN_F1, LX, LY, Zm, Zm);
 					break;
-				case 34: //状态火花
+				case 34: // 状态火花
 					if((level.MapObj[i].CFlag / 0x4) % 2 == 1) {
 						if((level.MapObj[i].CFlag / 0x40000) % 2 == 1) {
 							path = level.LH.GameStyle | Data::OBJ_34C;
@@ -3880,7 +3964,7 @@ namespace MarioEdit {
 					DrawImage(path, LX, LY, Zm, Zm);
 					DrawImage(Data::OBJ_CMN_F1, LX, LY, Zm, Zm);
 					break;
-				case 111: //机械库巴
+				case 111: // 机械库巴
 					if((level.MapObj[i].CFlag / 0x40000) % 2 == 1) {
 						path = level.LH.GameStyle | Data::OBJ_111B;
 					} else if((level.MapObj[i].CFlag / 0x80000) % 2 == 1) {
@@ -3892,7 +3976,7 @@ namespace MarioEdit {
 					DrawImage(path, LX, LY, Zm, Zm);
 					DrawImage(Data::OBJ_CMN_F1, LX, LY, Zm, Zm);
 					break;
-				case 76: //加邦
+				case 76: // 加邦
 					path = level.LH.GameStyle | Data::OBJ_76;
 					DrawImage(path, LX, LY, Zm, Zm);
 					DrawImage(Data::OBJ_CMN_F1, LX, LY, Zm, Zm);

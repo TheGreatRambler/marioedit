@@ -1,6 +1,3 @@
-[submodule "third_party/zxing"]
-	path = third_party/zxing
-	url = https://github.com/nu-book/zxing-cpp
 [submodule "third_party/skia"]
 	path = third_party/skia
 	url = https://github.com/google/skia
@@ -16,9 +13,6 @@
 [submodule "third_party/SDL"]
 	path = third_party/SDL
 	url = https://github.com/libsdl-org/SDL
-[submodule "third_party/wasmtime"]
-	path = third_party/wasmtime
-	url = https://github.com/bytecodealliance/wasmtime
 [submodule "third_party/zlib"]
 	path = third_party/zlib
 	url = https://github.com/madler/zlib

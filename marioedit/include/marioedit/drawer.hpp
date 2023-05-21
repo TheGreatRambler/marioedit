@@ -103,5 +103,7 @@ namespace MarioEdit {
 			sk_sp<SkImage> tilesheet   = NULL;
 			sk_sp<SkImage> spritesheet = NULL;
 		};
+
+		void DrawMap(Level::Drawer* drawer);
 	}
 }
