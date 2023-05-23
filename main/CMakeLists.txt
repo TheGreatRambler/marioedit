@@ -40,7 +40,7 @@ add_executable(main ${APPLICATION_TYPE}
 )
 
 if(WIN32)
-	target_link_libraries(main PUBLIC marioedit CLI11::CLI11 ${CURL_LIB} SDL3-static gdi32 opengl32)
+	target_link_libraries(main PUBLIC marioedit CLI11::CLI11 ${CURL_LIB} SDL3-static gdi32)
 elseif(ANDROID)
 	target_link_libraries(main PUBLIC marioedit CLI11::CLI11 ${CURL_LIB} GLESv3 EGL)
 elseif(APPLE)

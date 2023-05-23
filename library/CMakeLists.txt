@@ -6,14 +6,15 @@ set(CMAKE_CXX_STANDARD 20)
 if(CMAKE_BUILD_TYPE EQUAL "DEBUG")
 	add_link_options(-g -O0)
 endif()
-add_link_options(-shared)
 
 add_library(library SHARED
 	src/marioedit_library.cpp
 )
 
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_INSTALL_RPATH ".")
+if(APPLE)
+	set(CMAKE_MACOSX_RPATH 1)
+	set(CMAKE_INSTALL_RPATH ".")
+endif()
 
 target_include_directories(library PUBLIC include src)
 target_compile_options(library PRIVATE -Wall -Wextra -Wno-deprecated-declarations)

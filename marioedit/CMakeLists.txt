@@ -77,7 +77,7 @@ target_compile_options(marioedit PRIVATE -Wall -Wextra -Wno-unused-parameter -Wn
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/third_party/zlib ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/zlib)
 
 if(WIN32)
-	target_link_libraries(marioedit PUBLIC skia fmt zlibstatic)
+	target_link_libraries(marioedit PUBLIC skia fmt zlibstatic opengl32)
 elseif(ANDROID)
 	target_link_libraries(marioedit PUBLIC skia fmt zlibstatic)
 elseif(APPLE)
