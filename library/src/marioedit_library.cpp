@@ -69,7 +69,7 @@ MARIOEDIT_API uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size,
 }
 
 MARIOEDIT_API uint8_t* MarioEdit_GetFullPng(uint8_t* level_data, size_t level_size,
-	char* asset_folder, int width, int height, int offset_x, int offset_y, bool is_overworld,
+	char* asset_folder, int width, int height, int offset_x, int offset_y, int is_overworld,
 	int* thumbnail_size) {
 	sk_sp<SkSurface> rasterSurface = SkSurface::MakeRasterN32Premul(width, height);
 
