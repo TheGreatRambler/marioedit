@@ -22,9 +22,7 @@ execute_process(
 if(APPLE)
 	execute_process(
 		COMMAND bin/gn gen ${SKIA_BUILD_DIR} "--args=is_official_build=true target_cpu=\"arm64\" is_component_build=true skia_use_system_libjpeg_turbo=false skia_use_system_libwebp=false skia_use_system_expat=false skia_use_system_zlib=false skia_use_system_libpng=false skia_use_system_harfbuzz=false skia_use_system_icu=false skia_use_system_icu=false"
-		WORKING_DIRECTORY ${SKIA_DIR}
-		RESULT_VARIABLE skia_result
-  		OUTPUT_VARIABLE skia_output)
+		WORKING_DIRECTORY ${SKIA_DIR})
 	add_library(skia SHARED IMPORTED)
 	set_property(TARGET skia PROPERTY
 		IMPORTED_LOCATION ${SKIA_BUILD_DIR}/libskia.dylib)

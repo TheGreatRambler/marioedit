@@ -343,7 +343,7 @@ namespace MarioEdit {
 			if(tileCache.count(index)) {
 				return tileCache[index];
 			} else {
-				auto rasterSurface = SkSurface::MakeRasterN32Premul(TileW * w, TileW * h);
+				auto rasterSurface = SkSurface::MakeRasterN32Premul(TileW * w, TileW * h, nullptr);
 				rasterSurface->getCanvas()->drawImageRect(tilesheet,
 					SkRect::MakeXYWH(TileW * x, TileW * y, TileW * w, TileW * h),
 					SkRect::MakeXYWH(0, 0, TileW * w, TileW * h),
@@ -359,7 +359,7 @@ namespace MarioEdit {
 			if(patternCache.count(id)) {
 				return patternCache[id];
 			} else {
-				if(Data::ObjectLocation.contains(id)) {
+				if(Data::ObjectLocation.count(id)) {
 					const auto sprite = Data::ObjectLocation.at(id);
 					auto rasterSurface
 						= SkSurface::MakeRasterN32Premul(sprite.width, sprite.height);
@@ -1039,7 +1039,7 @@ namespace MarioEdit {
 				case 31:
 					KY = 0; // 3 * Zm
 					break;
-				case 106:   // 树
+				case 106: // 树
 					KY = 0;
 					break;
 				case 0:

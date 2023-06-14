@@ -18,7 +18,7 @@
 #include <thread>
 
 #if defined(_MSC_VER)
-#define MARIOEDIT_API __declspec(dllexport)                  // Microsoft
+#define MARIOEDIT_API __declspec(dllexport) // Microsoft
 #elif defined(__GNUC__)
 #define MARIOEDIT_API __attribute__((visibility("default"))) // GCC
 #else
@@ -69,7 +69,8 @@ MARIOEDIT_API uint8_t* MarioEdit_GetJpeg(uint8_t* level_data, size_t level_size,
 }
 
 MARIOEDIT_API uint8_t* MarioEdit_GetFullPng(uint8_t* level_data, size_t level_size,
-	char* asset_folder, int width, int height, int offset_x, int offset_y, int* thumbnail_size) {
+	char* asset_folder, int width, int height, int offset_x, int offset_y, bool is_overworld,
+	int* thumbnail_size) {
 	sk_sp<SkSurface> rasterSurface = SkSurface::MakeRasterN32Premul(width, height);
 
 	MarioEdit::Level::Parser* levelParser = new MarioEdit::Level::Parser();
@@ -77,7 +78,7 @@ MARIOEDIT_API uint8_t* MarioEdit_GetFullPng(uint8_t* level_data, size_t level_si
 
 	MarioEdit::Level::Drawer* drawer = new MarioEdit::Level::Drawer(*levelParser, 16);
 	drawer->Setup();
-	drawer->SetIsOverworld(true);
+	drawer->SetIsOverworld(is_overworld);
 	drawer->SetLog(false);
 	drawer->SetAssetFolder(asset_folder);
 	drawer->SetGraphics(rasterSurface->getCanvas());
@@ -90,7 +91,7 @@ MARIOEDIT_API uint8_t* MarioEdit_GetFullPng(uint8_t* level_data, size_t level_si
 	MarioEdit::Level::DrawMap(drawer);
 	rasterSurface->getCanvas()->flush();
 
-	// Allow full quality
+	// Quality is ignored by the PNG encoder
 	sk_sp<SkImage> img(rasterSurface->makeImageSnapshot());
 	sk_sp<SkData> png = sk_sp<SkData>(img->encodeToData(SkEncodedImageFormat::kPNG, 100));
 
